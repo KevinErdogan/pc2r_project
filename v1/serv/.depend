@@ -1,0 +1,8 @@
+connection_handler.cmo : virtual_connection_handler.cmo
+connection_handler.cmx : virtual_connection_handler.cmx
+server.cmo : virtual_server_class.cmo connection_handler.cmo
+server.cmx : virtual_server_class.cmx connection_handler.cmx
+virtual_connection_handler.cmo :
+virtual_connection_handler.cmx :
+virtual_server_class.cmo :
+virtual_server_class.cmx :
