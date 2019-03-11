@@ -1,5 +1,5 @@
 open Virtual_connection_handler
-
+ 
 (* connexion handler *)
 class connexion_kart s sa b gm =
 object(self)

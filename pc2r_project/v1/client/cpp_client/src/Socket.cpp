@@ -9,7 +9,7 @@
 #include <cstring>
 #include <string>
 
-#define MAX_SERVBUF 1024
+#define MAX_SERVBUF 1024 
 #define MAX_HOSTBUF 1024
 
 using namespace std;

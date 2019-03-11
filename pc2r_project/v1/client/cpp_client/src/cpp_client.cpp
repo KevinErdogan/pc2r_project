@@ -10,7 +10,7 @@
 #include <string>
 #include "Socket.h"
 
-using namespace std;
+using namespace std; 
 
 int main() {
 	pc2r::Socket sock;

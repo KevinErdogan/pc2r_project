@@ -12,7 +12,7 @@ class Socket {
 	int fd;
 
 public :
-	Socket():fd(-1){}
+	Socket():fd(-1){} 
 	Socket(int fd):fd(fd){}
 
 	// tente de se connecter à l'hôte fourni

@@ -5,7 +5,7 @@ class gameMap h w =
     val height = h
     val width = w
   end;;
-
+ 
   (* player *)
   class player x y n =
     object(self)
