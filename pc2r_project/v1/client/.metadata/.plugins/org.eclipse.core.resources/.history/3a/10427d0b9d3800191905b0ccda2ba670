@@ -1,0 +1,48 @@
+#------ Define Host -------#
+HOST    := $(BABAS)
+ 
+#------ Sources and Objects -------#
+ 
+ 
+#------ Includes ---------#
+H5FINCLUDE = ../include/
+ 
+#------ Includes ---------#
+LIBDIR = ../lib/$(BABAS)
+H5FLIBS = \
+$(LIBDIR)/libhdf5_cpp.a \
+$(LIBDIR)/libhdf5_hl.a \
+$(LIBDIR)/libhdf5.a
+ 
+SRC = $(wildcard *.cpp )
+OBJ = $(SRC: *.cpp=.o)
+ 
+SYSLIBS = $(H5FLIBS)
+ 
+all: test
+ 
+ifeq ($(HOST),Linux64)
+	CXX      = icc -ipo
+	CXXFLAGS = -D_FILE_OFFSET_BITS=64 $(H5FINCLUDE)
+ 
+endif
+ 
+ifeq ($(HOST),ibm)
+	CXX      = g++ -m64 
+	CXXFLAGS = $(H5FINCLUDE)
+#-qtune=pwr5 -qarch=pwr5
+endif
+ 
+test: $(OBJ)
+	$(CXX) $(CXXFLAGS) test.cpp $^ $(H5FINCLUDE) $(SYSLIBS) -o test
+	rm -f test.o
+ 
+	#$(FIGLIBS) $(SYSLIBS)
+ 
+.PHONY: clean mrproper
+ 
+clean:
+	rm -rf *.o
+ 
+mrproper: clean
+	rm -rf test
