@@ -8,7 +8,7 @@
 #  en Automatique.  Distributed only by permission.                   #
 #                                                                     #
 #*********************************************************************#
- 
+
 #                   Generic Makefile for Objective Caml Programs
 
 ############################ Documentation ######################

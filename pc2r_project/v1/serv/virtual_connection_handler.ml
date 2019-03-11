@@ -14,7 +14,7 @@ val mutable numero = 0
 val mutable debug = b
 
 method set_debug b = debug <- b
- 
+
 initializer
  numero <- gen_num();
  if debug then (
