@@ -22,6 +22,9 @@ public :
 	bool isOpen() const {return fd != -1;}
 	int getFD() { return fd ;}
 
+	// communication
+	void writeString(std::string msg);
+
 	void close();
 };
 

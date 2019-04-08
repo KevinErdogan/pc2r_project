@@ -66,7 +66,7 @@
 #
 # The Caml sources (including camlyacc and camllex source files)
 
-SOURCES = virtual_server_class.ml virtual_connection_handler.ml connection_handler.ml server.ml 
+SOURCES = virtual_connection_handler.ml connection_handler.ml game.ml session.ml game_manager.ml server.ml
 
 # The executable file to generate
 
@@ -88,7 +88,7 @@ CAMLYACC = ocamlyacc
 # LIBS=$(WITHGRAPHICS) $(WITHUNIX) $(WITHSTR) $(WITHNUMS) $(WITHTHREADS)\
 # $(WITHDBM)
 
-LIBS=$(WITHTHREADUNIX) $(WITHUNIX) $(WITHTHREADS)
+LIBS=$(WITHTHREADUNIX) $(WITHUNIX) $(WITHTHREADS) $(WITHSTR)
 
 # Should be set to -custom if you use any of the libraries above
 # or if any C code have to be linked with your program

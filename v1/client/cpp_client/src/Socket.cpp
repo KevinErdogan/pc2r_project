@@ -44,7 +44,17 @@ void Socket::connect(in_addr ipv4, int port){
 	}
 }
 
+/********************************/
+void Socket::writeString(std::string msg){
+	cout << "writing : " << msg << endl;
+	if(::write(fd, msg.c_str() + '\n', msg.length())<=0){
+		cout << "pas de print" << endl;
+	}
+}
 
+
+
+/*******************************/
 void Socket::close(){
 	if(fd!=-1){
 		shutdown(fd,2);

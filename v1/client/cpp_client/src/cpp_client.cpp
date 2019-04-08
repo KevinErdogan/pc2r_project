@@ -7,18 +7,21 @@
 //============================================================================
 
 #include <iostream>
+#include <string>
 #include "Socket.h"
 
 using namespace std;
 
 int main() {
 	pc2r::Socket sock;
-	sock.connect("localhost", 1234);
+	sock.connect("127.0.0.1", 1234);
 
 	if(sock.isOpen()){
-		int a;
-		cin >> a;
-		return 0;
+		while(1){
+		 string a;
+		 cin >> a;
+		 sock.writeString(a);
+		}
 	}
 
 	return 0;

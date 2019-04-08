@@ -1,8 +1,14 @@
 connection_handler.cmo : virtual_connection_handler.cmo
 connection_handler.cmx : virtual_connection_handler.cmx
-server.cmo : virtual_server_class.cmo connection_handler.cmo
-server.cmx : virtual_server_class.cmx connection_handler.cmx
+game.cmo :
+game.cmx :
+game_manager.cmo : session.cmo game.cmo connection_handler.cmo
+game_manager.cmx : session.cmx game.cmx connection_handler.cmx
+server.cmo : game_manager.cmo connection_handler.cmo
+server.cmx : game_manager.cmx connection_handler.cmx
+session.cmo : game.cmo connection_handler.cmo
+session.cmx : game.cmx connection_handler.cmx
+thread_pool.cmo :
+thread_pool.cmx :
 virtual_connection_handler.cmo :
 virtual_connection_handler.cmx :
-virtual_server_class.cmo :
-virtual_server_class.cmx :
