@@ -1,8 +1,17 @@
 package graphics;
 
+import java.awt.Component;
 import java.awt.event.KeyEvent;
+import java.io.IOException;
+import java.util.List;
 
-public class ClientFrame extends javax.swing.JFrame {
+import javax.swing.JOptionPane;
+
+import network.NetClient;
+import network.NetworkEvent;
+import network.NetworkObserver;
+
+public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     
     /**
 	 * 
@@ -11,9 +20,6 @@ public class ClientFrame extends javax.swing.JFrame {
 	
 	boolean isInGame=false;
 
-    public ClientFrame() {
-        initComponents();
-    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -48,12 +54,14 @@ public class ClientFrame extends javax.swing.JFrame {
         leftField = new javax.swing.JTextField();
         rightField = new javax.swing.JTextField();
         backButton = new javax.swing.JButton();
-        gamePanel = new MyComponent();
         escapePanel = new javax.swing.JPanel();
         menuLabel = new javax.swing.JLabel();
         configurationButton = new javax.swing.JButton();
         exitButton = new javax.swing.JButton();
         continueButton = new javax.swing.JButton();
+        
+        
+        gamePanel = new MyComponent();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mario Kart 2.0 - Kevin & Firat Prod.");
@@ -61,11 +69,12 @@ public class ClientFrame extends javax.swing.JFrame {
         setForeground(new java.awt.Color(255, 255, 255));
         setPreferredSize(new java.awt.Dimension(800, 600));
         setResizable(false);
+        /*
         addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyPressed(java.awt.event.KeyEvent evt) {
                 formKeyPressed(evt);
             }
-        });
+        });*/
 
         mainLayeredPane.setPreferredSize(this.getPreferredSize());
         mainLayeredPane.setLayout(new java.awt.CardLayout());
@@ -302,11 +311,7 @@ public class ClientFrame extends javax.swing.JFrame {
         mainLayeredPane.add(startPanel, "card2");
 
         gamePanel.setBackground(new java.awt.Color(102, 102, 102));
-        gamePanel.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                gamePanelKeyPressed(evt);
-            }
-        });
+
 
         escapePanel.setBackground(new java.awt.Color(255, 255, 255));
         escapePanel.setForeground(new java.awt.Color(255, 255, 255));
@@ -404,9 +409,89 @@ public class ClientFrame extends javax.swing.JFrame {
             .addComponent(mainLayeredPane, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
         );
 
+        
+        
+        /////////////////////////////////////////////////////////////////////////////////
+        escapePanel.setVisible(false);
+        gamePanel.addKeyListener(new MyKeyListener(this));
+        
+        
         pack();
     }// </editor-fold>                        
-                                 
+     /*****************************************************************************************/     
+    
+    private NetClient client;
+    
+    public ClientFrame() {
+        initComponents();
+    }
+    
+    private void playButtonMouseClicked(java.awt.event.MouseEvent evt) {
+    	client = new NetClient(serveripField.getText(), Integer.parseInt(serverportField.getText()));
+    	try {
+			client.connect(usernameField.getText());
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Connection Error", JOptionPane.ERROR_MESSAGE);
+		}
+    	// chargement button
+    	//////////////
+    }
+    
+    public void welcome() {
+    	startPanel.setVisible(false);
+        escapePanel.setVisible(false);
+        gamePanel.setVisible(true);
+       	gamePanel.setFocusable(true);
+       	gamePanel.requestFocus();
+        isInGame=true;
+    }
+    
+    public void denied() {
+    	JOptionPane.showMessageDialog(this, "Username incorrect or already in use.", "Username", JOptionPane.ERROR_MESSAGE);
+    }
+
+	@Override
+	public void notify(List<NetworkEvent> events) {
+		for(NetworkEvent e : events) {
+			switch(e.getNetType()) {
+			case WELCOMEWAIT:
+				welcome();
+				break;
+			case WELCOMEGAME:
+				welcome();
+				break;
+			case DENIED:
+				denied();
+				break;
+			case PLAYERLEFT:
+				
+				break;
+			case NEWPLAYER:
+				
+				break;
+				
+			case NEWSESSION:
+				
+				break;
+			case WINNER:
+				
+				break;
+			default:
+				break;
+			}
+		}
+	}
+    
+	public javax.swing.JPanel getEscapePanel() {
+		// TODO Auto-generated method stub
+		return escapePanel;
+	}
+    
+    
+    
+    
+    
+    /******************************************************************************************/
     private void configButtonMouseClicked(java.awt.event.MouseEvent evt) {                                          
         // TODO add your handling code here:
         infoPanel.setVisible(false);
@@ -423,31 +508,7 @@ public class ClientFrame extends javax.swing.JFrame {
             infoPanel.setVisible(true);
         }
     }                                       
-
-    private void playButtonMouseClicked(java.awt.event.MouseEvent evt) {                                        
-        // TODO add your handling code here:
-        startPanel.setVisible(false);
-        gamePanel.setVisible(true);
-        isInGame=true;
-    }                                       
-
-    private void gamePanelKeyPressed(java.awt.event.KeyEvent evt) {                                     
-        // TODO add your handling code here:
-        System.out.println("event");
-        if(evt.getKeyCode() == KeyEvent.VK_Z){
-            boolean state = escapePanel.isVisible();
-            escapePanel.setVisible(!state);
-        }
-    }                                    
-
-    private void formKeyPressed(java.awt.event.KeyEvent evt) {                                
-        // TODO add your handling code here:
-        System.out.println("event");
-        if(evt.getKeyCode() == KeyEvent.VK_Z){   
-            boolean state = escapePanel.isVisible();
-            escapePanel.setVisible(!state);
-        }
-    }                               
+  
 
     private void continueButtonMouseClicked(java.awt.event.MouseEvent evt) {                                            
         // TODO add your handling code here:
@@ -504,4 +565,5 @@ public class ClientFrame extends javax.swing.JFrame {
     private javax.swing.JTextField usernameField;
     private javax.swing.JLabel usernameLabel;
     // End of variables declaration                   
+
 }
