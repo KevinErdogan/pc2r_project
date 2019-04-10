@@ -7,9 +7,13 @@ import java.util.List;
 
 import javax.swing.JOptionPane;
 
+import model.Game;
 import network.NetClient;
 import network.NetworkEvent;
 import network.NetworkObserver;
+import utils.Pair;
+import utils.Point2D;
+import utils.Util;
 
 public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     
@@ -414,19 +418,29 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
         /////////////////////////////////////////////////////////////////////////////////
         escapePanel.setVisible(false);
         gamePanel.addKeyListener(new MyKeyListener(this));
-        
+        usernameField.setText("hello");
+        serveripField.setText("127.0.0.1");
+        serverportField.setText("1234");
         
         pack();
     }// </editor-fold>                        
      /*****************************************************************************************/     
     
-    private NetClient client;
+    private NetClient client=null;
+    private Game game;
     
     public ClientFrame() {
         initComponents(); 
     }
     
     private void playButtonMouseClicked(java.awt.event.MouseEvent evt) {
+    	if(client!=null) {
+			try {
+				client.disconnect();
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(this, e.getMessage(), "Disconnect Error", JOptionPane.ERROR_MESSAGE);
+			}
+    	}
     	client = new NetClient(serveripField.getText(), Integer.parseInt(serverportField.getText()));
     	client.registerObserver(this);
     	try {
@@ -457,9 +471,18 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 			switch(e.getNetType()) {
 			case WELCOMEWAIT:
 				welcome();
+				// affichage wait
 				break;
 			case WELCOMEGAME:
 				welcome();
+				// jeu
+				{
+					List<Object> params = e.getParameters();
+					String scors =(String) params.get(0); // to display ...
+					Point2D coord = Util.getValueInCoord((String) params.get(1));
+					List<Pair<String, Integer>> scores;
+					game = new Game(scores, coord);
+				}
 				break;
 			case DENIED:
 				denied();
@@ -470,12 +493,17 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 			case NEWPLAYER:
 				
 				break;
-				
 			case NEWSESSION:
+				List<Object> params = e.getParameters();
+				List<Pair<String, Point2D>> coords = Util.getValueInCoords((String) params.get(0));
+				Point2D coord = Util.getValueInCoord((String) params.get(1));
 				
+				game = new Game(coords, coord);
+				gamePanel.start(game);
 				break;
 			case WINNER:
 				
+				gamePanel.stop();
 				break;
 			default:
 				break;
@@ -488,7 +516,18 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 		return escapePanel;
 	}
     
-    
+    private void exitButtonMouseClicked(java.awt.event.MouseEvent evt) {                                        
+    	try {
+			client.disconnect();
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(this, e.getMessage(), "Disconnect Error", JOptionPane.ERROR_MESSAGE);
+		}
+        isInGame=false;
+        gamePanel.setVisible(false);
+        startPanel.setVisible(true);
+        infoPanel.setVisible(true);
+        configPanel.setVisible(false);
+    }     
     
     
     
@@ -514,17 +553,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     private void continueButtonMouseClicked(java.awt.event.MouseEvent evt) {                                            
         // TODO add your handling code here:
         escapePanel.setVisible(false);
-    }                                                                                   
-
-    private void exitButtonMouseClicked(java.awt.event.MouseEvent evt) {                                        
-        // TODO add your handling code here:
-        // disconnect
-        isInGame=false;
-        gamePanel.setVisible(false);
-        startPanel.setVisible(true);
-        infoPanel.setVisible(true);
-        configPanel.setVisible(false);
-    }                                       
+    }                                                                                                                     
 
     private void configurationButtonMouseClicked(java.awt.event.MouseEvent evt) {                                                 
         // TODO add your handling code here:

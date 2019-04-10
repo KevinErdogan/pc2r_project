@@ -10,10 +10,32 @@ public class NetClientInput extends Thread{
 	private NetClient handler;
 	private InputStream in;
 	private boolean stop = false;
+	
+	Pattern welcome ; 
+	Pattern denied ;
+	Pattern playerLeft ;
+	Pattern newPlayer ;
+	Pattern session ;
+	Pattern winner ;
+	Pattern tick ;
+	Pattern newObj;
 
 	public NetClientInput(InputStream in, NetClient handler) {
 		this.in = in;
 		this.handler = handler;
+		String floats = "-?[0-9]+\\.?[0-9]{0,10}";
+		String coord = "X"+floats+"Y"+floats;
+		String coords = "(\\|?[a-z]+:"+coord+")+";
+		String scores = "(\\|?[a-z]+:[0-9]+)+";
+		String vcoords = "(\\|?"+coords+"VX"+floats+"VY"+floats+"T"+floats+")";
+		welcome = Pattern.compile("WELCOME\\/(attente|jeu\\/"+scores+"\\/"+coord+")\\/"); 
+		denied = Pattern.compile("DENIED\\/");
+		playerLeft = Pattern.compile("PLAYERLEFT\\/[a-z]+\\/");
+		newPlayer = Pattern.compile("NEWPLAYER\\/[a-z]+\\/");
+		session = Pattern.compile("SESSION\\/"+coords+"\\/"+coord+"\\/");
+		winner = Pattern.compile("WINNER\\/"+scores+"\\/");
+		tick = Pattern.compile("TICK\\/"+vcoords+"\\/");
+		newObj = Pattern.compile("NEWOBJ\\/"+coord+"\\/"+scores+"\\/");
 	}
 
 	public void exit() {
@@ -21,22 +43,18 @@ public class NetClientInput extends Thread{
 	}
 
 	public void run() {
-		String coord = "X[-+]?[0-9]+\\.?[0-9]{0,4}Y[-+]?[0-9]+\\\\.?[0-9]{0,4}";
-		String coords = "([a-z]+:"+coord+"|?)+";
-		String scores = "([a-z]:[0.9]+|?)+";
-		String vcoords = "("+coord+"VX[-+]?[0-9]+\\\\.?[0-9]{0,4}VY[-+]?[0-9]+\\\\.?[0-9]{0,4}T[-+]?[0-9]+\\\\.?[0-9]{0,4}|?)+";
-		Pattern welcome = Pattern.compile("WELCOME/(attente|(jeu/"+scores+"/"+coord+"))/"); 
-		Pattern denied = Pattern.compile("DENIED/");
-		Pattern playerLeft = Pattern.compile("PLAYERLEFT/[a-z]+/");
-		Pattern newPlayer = Pattern.compile("NEWPLAYER/[a-z]+/");
-		Pattern session = Pattern.compile("SESSION/"+coords+"/"+coord+"/");
-		Pattern winner = Pattern.compile("WINNER/"+scores+"/");
-		Pattern tick = Pattern.compile("TICK/"+vcoords+"/");
-		Pattern newObj = Pattern.compile("NEWOBJ/"+coord+"/"+scores+"/");
 		
 		try (BufferedReader is = new BufferedReader(new InputStreamReader(in))) {
 			while (!stop) {
+				while(!is.ready()) {
+					try {
+						Thread.sleep(200/*server_tickrate/2*/);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				}
 				String line = is.readLine();
+				System.out.println("Received : <<"+line+">>");
 				if (line != null) {
 					if (welcome.matcher(line).matches()) {
 						boolean isWaiting = false;
@@ -44,11 +62,11 @@ public class NetClientInput extends Thread{
 						String phase = null;
 						String score = null;
 						String cord = null;
-						for(int i=0; i < line.length(); i++) {
-							if(s.charAt(i)=='/') {
+						for(int i=8; i < line.length(); i++) {
+							if(line.charAt(i)=='/') {
 								if(phase==null) {
 									phase = s.toString();
-									if(phase=="attente") {
+									if(phase.compareTo("attente")==0) {
 										isWaiting=true;
 										break;
 									}
@@ -57,10 +75,10 @@ public class NetClientInput extends Thread{
 								}else {
 									cord = s.toString();
 								}
-								s.delete(0, s.length()-1);
+								s.delete(0, s.length());
 								continue;
 							}
-							s.append(s.charAt(i));
+							s.append(line.charAt(i));
 						}
 						if(!isWaiting)
 							handler.welcome(phase, score, cord);
