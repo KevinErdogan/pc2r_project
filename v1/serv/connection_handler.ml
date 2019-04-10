@@ -85,7 +85,7 @@ val isConnected = ref false
   method sessionTickV vcoords =
     let msg = "TICK/" ^ vcoords ^"/\n" in
       self#sendOut msg
-      
+
   method sessionWin scores =
     let msg = "WINNER/" ^ scores ^"/\n" in
       self#sendOut msg
@@ -102,12 +102,13 @@ val isConnected = ref false
     isRun := false;
     self#stop ())
 
-  method newPos coord =
+  method newPos (coord:string) =
     if !isConnected && (game_manager#isGameRunning ()) then
       (game_manager#getCurrentSession())#receiveNewPos self coord
 
-  method newCom comms =
+  method newCom comms =()
+  (*
         if !isConnected && (game_manager#isGameRunning ()) then
-          (game_manager#getCurrentSession())#receiveNewCom self comms
+          (game_manager#getCurrentSession())#receiveNewCom self comms *)
 
 end;;

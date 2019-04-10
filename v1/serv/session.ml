@@ -2,9 +2,9 @@ open Connection_handler
 open Game
 
     (* session *)
-    class session l m nbPlayer gm =
+    class session l m nbPlayer st =
       object(self)
-      val game_manager = gm
+      val serv_tickrate = st
       val mutable playerList = (l : (connexion_kart * player) list)
       val mutable playerPoints = ([] : (player * int) list )
       val map = (m : gameMap)
@@ -75,10 +75,10 @@ open Game
             in
           search playerList con_hand x y
 
-
+(*
       method receiveNewCom con_hand comms =
         ()
-
+*)
       method listSearch l p =
         let rec search l p =
           match l with
@@ -104,11 +104,11 @@ open Game
             match pL with
               [] -> ()
               | (c,p) :: t -> if p == player then
-                                let points = (self#listSearch playerPoints p) in
+                                (let points = (self#listSearch playerPoints p) in
                                   if (points+1) = win_cap then
-                                    self#win();hasPlayerWin := true (* end session *)
+                                    (self#win();hasPlayerWin := true) (* end session *)
                                   else
-                                    self#listPut playerPoints p (points+1)
+                                    (self#listPut playerPoints p (points+1)) )
                               else
                                 incrPoint t
           in
@@ -175,8 +175,8 @@ open Game
              match l with
                [] -> str
              | (c,p) :: t -> let (x,y) = (p#getPos()) in
-                              let (vX,vY) = p#getV() and t = p#getSpeed() in
-                               let aPlayerCoord = (p#getName())^":X" ^ string_of_float x ^ "Y" ^ string_of_float y ^ "VX" ^ string_of_float vX ^ "VY" ^ string_of_float vY ^ "T" ^ string_of_int t in
+                              let (vX,vY) = p#getV() and speed = p#getSpeed() in
+                               let aPlayerCoord = (p#getName())^":X" ^ string_of_float x ^ "Y" ^ string_of_float y ^ "VX" ^ string_of_float vX ^ "VY" ^ string_of_float vY ^ "T" ^ string_of_int speed in
                                  let concat = (if (String.compare str "")==0 then
                                                  str ^ aPlayerCoord
                                                else
@@ -190,9 +190,8 @@ open Game
             "X"^string_of_float x^"Y"^string_of_float y
 
       method server_tickrate () =
-        let serv_tickrate = game_manager#getServerTickrateTime() in
           while !timerRun do
-              Unix.sleepf(serv_tickrate);
+              Unix.sleep(serv_tickrate);
               self#tick ()
           done
 

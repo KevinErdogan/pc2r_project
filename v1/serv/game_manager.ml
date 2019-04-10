@@ -22,7 +22,7 @@ class game_manager st srt =
     val isGameRunning = ref false
     val mutable playerList = ( [] : ( connexion_kart * player ) list )
     val relance = ref false
-    val mutable currentSession = new session [] (new gameMap 100.0 100.0) 0 ()
+    val mutable currentSession = new session [] (new gameMap 100.0 100.0) 0 st
     val isTimerOn = ref false
 
     method userConnected con_hand name =
@@ -128,7 +128,7 @@ class game_manager st srt =
       let playerList = gm#getPlayerList()
         and nbPlayer = gm#getNbPlayerConnected() in
           if nbPlayer > 0 then
-            (let session = (new session playerList (new gameMap 100.0 100.0) nbPlayer gm) in
+            (let session = (new session playerList (new gameMap 100.0 100.0) nbPlayer serv_tickrate) in
               gm#setCurrentSession session;
               gm#setIsGameRunning true;
               gm#setIsTimerOn false;

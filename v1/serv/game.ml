@@ -37,12 +37,14 @@ class gameMap h w =
       method move () =
         print_string "move player";flush stdout
       method clock () =
-        direction := !direction +. dirAngle
+        let (x,y) = !angle in
+        angle := (x +. angleAdd, y+. angleAdd)
       method anticlock () =
-        direction := !direction -. dirAngle
+      let (x,y) = !angle in
+        angle := (x -. angleAdd, y-. angleAdd)
       method thrust () = (* pas exactement ca *)
-        let (x, y) = !speed in
-          speed := (x +. incrSpeed, y +. incrSpeed)
+        let x = !speed in
+          speed := x + incrSpeed
       method getName () =
         name
       method getAngle()=
