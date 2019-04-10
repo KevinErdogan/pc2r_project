@@ -88,7 +88,8 @@ CAMLYACC = ocamlyacc
 # LIBS=$(WITHGRAPHICS) $(WITHUNIX) $(WITHSTR) $(WITHNUMS) $(WITHTHREADS)\
 # $(WITHDBM)
 
-LIBS=$(WITHTHREADUNIX) $(WITHUNIX) $(WITHTHREADS) $(WITHSTR)
+LIBS= $(WITHTHREADUNIX) $(WITHUNIX) $(WITHTHREADS) $(WITHSTR)
+LIBBS=$(LIBS:.cma=.cmxa)
 
 # Should be set to -custom if you use any of the libraries above
 # or if any C code have to be linked with your program
@@ -102,11 +103,11 @@ WITHGRAPHICS =graphics.cma -cclib -lgraphics -cclib -L/usr/X11R6/lib -cclib -lX1
 
 WITHUNIX =unix.cma -cclib -lunix
 
-WITHSTR =str.cma -cclib # -lstr
+WITHSTR =str.cma -cclib#-lstr
 
 WITHNUMS =nums.cma -cclib -lnums
 
-WITHTHREADUNIX = -thread
+WITHTHREADUNIX =-thread
 
 WITHTHREADS =threads.cma -cclib -lthreads
 
@@ -140,9 +141,9 @@ $(EXEC): $(OBJS)
 	$(CAMLC) $(CUSTOM) -o $(EXEC) $(LIBS) $(OBJS)
 
 $(EXEC).opt: $(OPTOBJS)
-	$(CAMLOPT) -o $(EXEC) $(LIBS:.cma=.cmxa) $(OPTOBJS)
+	$(CAMLOPT) -o $(EXEC) -thread unix.cmxa str.cmxa threads.cmxa $(OPTOBJS)
 
-.SUFFIXES:
+
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .mll .mly
 
 #-c -thread $< -custom unix.cma threads.cma -cclib -lthreads
