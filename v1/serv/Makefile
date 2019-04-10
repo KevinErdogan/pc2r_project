@@ -102,7 +102,7 @@ WITHGRAPHICS =graphics.cma -cclib -lgraphics -cclib -L/usr/X11R6/lib -cclib -lX1
 
 WITHUNIX =unix.cma -cclib -lunix
 
-WITHSTR =str.cma -cclib -lstr
+WITHSTR =str.cma -cclib # -lstr
 
 WITHNUMS =nums.cma -cclib -lnums
 
@@ -120,7 +120,7 @@ WITHDBM =dbm.cma -cclib -lmldbm -cclib -lndbm
 ################ Nothing to set up or fix here
 ##############################################################
 
-all: depend $(EXEC)
+all: depend $(EXEC).opt
 
 opt : $(EXEC).opt
 
@@ -145,14 +145,16 @@ $(EXEC).opt: $(OPTOBJS)
 .SUFFIXES:
 .SUFFIXES: .ml .mli .cmo .cmi .cmx .mll .mly
 
+#-c -thread $< -custom unix.cma threads.cma -cclib -lthreads
+
 .ml.cmo:
-	$(CAMLC) -c -thread $< -custom unix.cma threads.cma connection_handler.ml -cclib -lthreads
+	$(CAMLC) -c -thread $<
 
 .mli.cmi:
 	$(CAMLC) -c $<
 
 .ml.cmx:
-	$(CAMLOPT) -c $<
+	$(CAMLOPT) -c -thread $<
 
 .mll.cmo:
 	$(CAMLLEX) $<

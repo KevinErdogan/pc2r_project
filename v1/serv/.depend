@@ -8,7 +8,5 @@ server.cmo : game_manager.cmo connection_handler.cmo
 server.cmx : game_manager.cmx connection_handler.cmx
 session.cmo : game.cmo connection_handler.cmo
 session.cmx : game.cmx connection_handler.cmx
-thread_pool.cmo :
-thread_pool.cmx :
 virtual_connection_handler.cmo :
 virtual_connection_handler.cmx :
