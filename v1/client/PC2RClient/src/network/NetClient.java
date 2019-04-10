@@ -39,7 +39,7 @@ public class NetClient {
 			chi.exit();
 		if (sock != null)
 			sock.close();
-	}
+	} 
 	
 	// Observers Pattern
 	

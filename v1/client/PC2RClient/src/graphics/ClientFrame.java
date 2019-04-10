@@ -423,7 +423,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     private NetClient client;
     
     public ClientFrame() {
-        initComponents();
+        initComponents(); 
     }
     
     private void playButtonMouseClicked(java.awt.event.MouseEvent evt) {
