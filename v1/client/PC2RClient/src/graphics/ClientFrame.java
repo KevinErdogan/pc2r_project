@@ -428,6 +428,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     
     private void playButtonMouseClicked(java.awt.event.MouseEvent evt) {
     	client = new NetClient(serveripField.getText(), Integer.parseInt(serverportField.getText()));
+    	client.registerObserver(this);
     	try {
 			client.connect(usernameField.getText());
 		} catch (IOException e) {
