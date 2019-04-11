@@ -55,10 +55,10 @@ val isConnected = ref false
     isRun := false;
     self#stop ())
 
- method welcome b score nextObj ocoords=
+ method welcome b score nextObj (ocoords:string)=
    let msg =
      if b then
-      "WELCOME/jeu/" ^ score ^ "/" ^ nextObj ^ "/" ^ ocoords ^"/\n"
+      "WELCOME/jeu/" ^ score ^ "/" ^ nextObj ^ "/\n"(* ^ ocoords ^"/\n" *)
      else
       "WELCOME/attente/\n"
       (*"WELCOME/attente/"^ score ^ "/" ^ nextObj ^ "/" ^ ocoords ^"/\n"*) (*protocole C ??*)
