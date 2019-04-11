@@ -476,6 +476,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 			case WELCOMEGAME:
 				welcome();
 				// jeu
+				/*
 				{
 					List<Object> params = e.getParameters();
 					String scors =(String) params.get(0); // to display ...
@@ -483,6 +484,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 					List<Pair<String, Integer>> scores;
 					game = new Game(scores, coord);
 				}
+				*/
 				break;
 			case DENIED:
 				denied();

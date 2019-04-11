@@ -11,7 +11,7 @@ import javax.swing.JComponent;
 
 import model.Game;
 import model.Objectif;
-import utils.PairPoint2D;
+import utils.Pair;
 import utils.Point2D;
 
 
@@ -42,9 +42,9 @@ public class MyComponent extends JComponent {
 			g2.setStroke(new BasicStroke(3));
 			Arc2D arc = new Arc2D.Double();
 			
-			List<PairPoint2D<String>> players = game.getPlayers();
+			List<Pair<String, Point2D>> players = game.getPlayers();
 			int i =1;
-			for(PairPoint2D<String> p : players) {
+			for(Pair<String, Point2D> p : players) {
 				// update playernameList in interface
 				Point2D pos = p.getRight();
 				arc.setArcByCenter(pos.getX(), pos.getY(), 10, 0, 360, Arc2D.OPEN);

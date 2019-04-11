@@ -13,8 +13,8 @@ public class Util {
 		return new Point2D(x,y);
 	}
 
-	public static List<PairPoint2D<String>> getValueInCoords(String coords) {
-		List<PairPoint2D<String>> list = new LinkedList<PairPoint2D<String>>();
+	public static List<Pair<String, Point2D>> getValueInCoords(String coords) {
+		List<Pair<String,Point2D>> list = new LinkedList<Pair<String, Point2D>>();
 		StringBuilder s = new StringBuilder(coords);
 		int sepPos, twoPointPos;
 		
@@ -23,7 +23,7 @@ public class Util {
 			twoPointPos = s.indexOf(":");
 			String name = s.substring(0, twoPointPos-1);
 			Point2D coord = Util.getValueInCoord(s.substring(twoPointPos+1, sepPos-1));
-			list.add(new PairPoint2D<String>(name,coord));
+			list.add(new Pair<String, Point2D>(name,coord));
 			s.delete(0, sepPos+1);
 		}
 		
@@ -31,7 +31,7 @@ public class Util {
 		twoPointPos = s.indexOf(":");
 		String name = s.substring(0, twoPointPos-1);
 		Point2D coord = Util.getValueInCoord(s.substring(twoPointPos+1, s.length()-1));
-		list.add(new PairPoint2D<String>(name,coord));
+		list.add(new Pair<String, Point2D>(name,coord));
 		
 		return list;
 	}
