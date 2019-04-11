@@ -1,6 +1,9 @@
 open Connection_handler
 open Game
 
+
+
+let my_print_float x = let s = Printf.sprintf "%.4f" x in s
     (* session *)
     class session l m nbPlayer st =
       object(self)
@@ -54,7 +57,7 @@ open Game
           let scores = self#getScores () in
             let h = m#getHeight() and w = m#getWidth() in
               let (x,y) = makeAleaPos h w in
-                let coord = "X"^string_of_float x^"Y"^ string_of_float y in
+                let coord = "X"^my_print_float x^"Y"^ my_print_float y in
 
                 nobj playerList coord scores;
                 nextObj := (x,y)
@@ -162,7 +165,7 @@ open Game
           match l with
             [] -> str
           | (c,p) :: t -> let (x,y) = (p#getPos()) in
-                            let aPlayerCoord = (p#getName())^":X" ^ string_of_float x ^ "Y" ^ string_of_float y in
+                            let aPlayerCoord = (p#getName())^":X" ^ my_print_float x ^ "Y" ^ my_print_float y in
                               let concat = (if (String.compare str "")==0 then
                                               str ^ aPlayerCoord
                                             else
@@ -177,7 +180,7 @@ open Game
                [] -> str
              | (c,p) :: t -> let (x,y) = (p#getPos()) in
                               let (vX,vY) = p#getV() and speed = p#getSpeed() in
-                               let aPlayerCoord = (p#getName())^":X" ^ string_of_float x ^ "Y" ^ string_of_float y ^ "VX" ^ string_of_float vX ^ "VY" ^ string_of_float vY ^ "T" ^ string_of_int speed in
+                               let aPlayerCoord = (p#getName())^":X" ^ my_print_float x ^ "Y" ^ my_print_float y ^ "VX" ^ my_print_float vX ^ "VY" ^ my_print_float vY ^ "T" ^ string_of_int speed in
                                  let concat = (if (String.compare str "")==0 then
                                                  str ^ aPlayerCoord
                                                else
@@ -188,7 +191,7 @@ open Game
 
         method getObjCoord () =
           let (x,y) = !nextObj in
-            "X"^string_of_float x^"Y"^string_of_float y
+            "X"^my_print_float x^"Y"^my_print_float y
 
       method server_tickrate () =
           while !timerRun do
