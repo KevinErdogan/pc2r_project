@@ -49,6 +49,7 @@ class game_manager st srt =
           ) in
          process ();
 
+
          (if not(!isGameRunning) && not(!isTimerOn) then
            let _ = Thread.create timer (time_between_sessions, (self#startSession), self) in
               isTimerOn := true
@@ -128,7 +129,7 @@ class game_manager st srt =
       let playerList = gm#getPlayerList()
         and nbPlayer = gm#getNbPlayerConnected() in
           if nbPlayer > 0 then
-            (let session = (new session playerList (new gameMap 100.0 100.0) nbPlayer serv_tickrate) in
+            (let session = (new session playerList (new gameMap 800.0 600.0) nbPlayer serv_tickrate) in
               gm#setCurrentSession session;
               gm#setIsGameRunning true;
               gm#setIsTimerOn false;

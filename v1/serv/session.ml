@@ -16,17 +16,18 @@ open Game
 
       initializer
         let h = m#getHeight() and w = m#getWidth() in
-         let newPos = makeAleaPos ~-.h h ~-.w w in
+         let newPos = makeAleaPos h w in
           nextObj := newPos;
           let rec initAll l =
             match l with
               [] -> ()
-            | (c,p) :: t -> p#init ~-.h h ~-.w w; initAll t
+            | (c,p) :: t -> (playerPoints <- ((p,0) ::playerPoints));p#init h w; initAll t
           in
           initAll playerList
 
     method init () =
       self#sendStartPoses ()
+
     method run () =
       let _ = Thread.create self#server_tickrate () in
       while not(!hasPlayerWin) do
@@ -52,7 +53,7 @@ open Game
       in
           let scores = self#getScores () in
             let h = m#getHeight() and w = m#getWidth() in
-              let (x,y) = makeAleaPos ~-.h h ~-.w w in
+              let (x,y) = makeAleaPos h w in
                 let coord = "X"^string_of_float x^"Y"^ string_of_float y in
 
                 nobj playerList coord scores;
@@ -117,7 +118,7 @@ open Game
 
       method newPlayerJoined con_hand newPlayer =
       let h = m#getHeight() and w = m#getWidth() in
-        newPlayer#init ~-.h h ~-.w w;
+        newPlayer#init h w;
         playerList <- ((con_hand, newPlayer) :: playerList);
         playerPoints <- ((newPlayer, 0) :: playerPoints)
 
@@ -130,8 +131,8 @@ open Game
                           else
                             removeFromList ((c,p) :: head) t name
         in
-          playerList <- (removeFromList [] playerList name);
-
+          playerList <- (removeFromList [] playerList name)
+(*;
         let rec removeFromPoints (head : (player * int) list) (l : (player * int) list) (name : string) =
           match l with
             [] -> head
@@ -141,20 +142,20 @@ open Game
                             removeFromPoints ((p,v) :: head) t name
           in
             playerPoints <- (removeFromPoints [] playerPoints name)
-
+*)
       method getScores () =
         let rec scoreMaker l str =
           match l with
             [] -> str
-            | (c, p) :: t ->
-              let aPlayerScore = (p#getName()) ^ ":" ^ string_of_int (self#listSearch playerPoints p) in
+            | (p, v) :: t ->
+              let aPlayerScore = (p#getName()) ^ ":" ^ string_of_int v in
                 let concat = if (String.compare str "")==0 then
                                 str ^ aPlayerScore
                               else
                                 str ^ "|" ^ aPlayerScore in
               scoreMaker t concat
         in
-        scoreMaker playerList ""
+        scoreMaker playerPoints ""
 
        method getCoords () =
         let rec poseMaker l str =

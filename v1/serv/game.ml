@@ -1,7 +1,7 @@
-let makeAleaPos minX maxX minY maxY =
+let makeAleaPos maxX maxY =
   let x = Random.float maxX in
    let y = Random.float maxY in
-    (x-.minX, y-.minY)
+    (x, y)
 
 class gameMap h w =
   object(self)
@@ -28,8 +28,8 @@ class gameMap h w =
       val maxSpeed = 3
       val collider = (10.0, 10.0)
 
-     method init minX maxX minY maxY =
-        let newPos = makeAleaPos minX maxX minY maxY in
+     method init maxX maxY =
+        let newPos = makeAleaPos maxX maxY in
           pos := newPos
 
      method getPos () =

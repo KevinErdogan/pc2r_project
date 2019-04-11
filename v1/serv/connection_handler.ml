@@ -26,7 +26,7 @@ val isConnected = ref false
               print_string("Input is : " ^ input ^"\n");flush stdout;
               (
                 if Str.string_match connect input 0 then
-                  self#connect (String.sub input 8 ((String.length input)-10))
+                  self#connect (String.sub input 8 ((String.length input)-9))
                 else if Str.string_match exit input 0 then
                   self#exit (String.sub input 5 ((String.length input)-7))
                 (*else if Str.string_match newPos input 0 then
@@ -51,7 +51,9 @@ val isConnected = ref false
     (name := n;
     isConnected:=true)
    else
-    self#sendOut "DENIED/\n"
+    (self#sendOut "DENIED/\n";
+    isRun := false;
+    self#stop ())
 
  method welcome b score nextObj =
    let msg =
@@ -60,6 +62,7 @@ val isConnected = ref false
      else
       "WELCOME/attente/\n"
    in
+    print_string("iciiiiiiiiii "^score);flush stdout;
     self#sendOut msg
 
   method newPlayerConnected name =
