@@ -39,11 +39,11 @@ class game_manager st srt =
               self#setNbPlayerConnected ((self#getNbPlayerConnected())+1);
               print_string ("Player '"^name^"' connected.\nNumber Player Connected : "^ string_of_int(!nbPlayerConnected) ^ "\n"); flush stdout;
               if not (self#getIsGameRunning ()) then
-               con_hand#welcome false "" ""
+               con_hand#welcome false "" "" ""
               else
               (
                 let curSession = self#getCurrentSession () in
-                  con_hand#welcome true (curSession#getScores()) (curSession#getObjCoord());
+                  con_hand#welcome true (curSession#getScores()) (curSession#getObjCoord()) (curSession#getObsCoords());
                   curSession#registerNewPlayer con_hand newPlayer
               )
           ) in

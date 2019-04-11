@@ -18,6 +18,7 @@ class session l m nbPlayer st =
   val nextObj = ref (0.0, 0.0)
   val isSessionEmpty = ref false
   val mutex = Mutex.create ()
+  val mutable obstacles = ( [] : (float * float) list) 
 
   initializer
     (* init new objectif *)
@@ -30,7 +31,8 @@ class session l m nbPlayer st =
           self#setPlayerPoints ( (p,0) :: playerPoints);
           p#init h w
       in
-        List.iter initAll playerList
+        List.iter initAll playerList;
+      self#addObstacles 5 (* ajout de 5 obstacles *) 
 
   method run () =
     self#sendStartSession ();
@@ -94,6 +96,12 @@ class session l m nbPlayer st =
     let isSess = !isSessionEmpty in
     Mutex.unlock mutex;
     isSess
+
+  method private getObstaclesList () =
+    Mutex.lock mutex;
+    let obs = obstacles in
+    Mutex.unlock mutex;
+    obs
 
 
   method sendStartSession () =
@@ -251,8 +259,21 @@ class session l m nbPlayer st =
     let (x,y) = self#getNextObj() in
       "X"^my_print_float x^"Y"^my_print_float y
 
+  method getObsCoords () =
+    let rec obsPos l str =
+      match l with
+        [] -> str
+      | (x,y) :: t ->   let curStr = "X" ^ my_print_float x ^ "Y" ^ my_print_float y in
+                          let concat = (if (String.compare str "")==0 then
+                                          str ^ curStr
+                                        else
+                                          str ^ "|" ^ curStr) in
+                        obsPos t concat
+    in obsPos obstacles ""
 
   method private tick () =
+     self#playersColliding ();
+     self#playersCollidingObstacles ();
      let vcoords = self#getVCoords () in
       let rec send l =
         match l with
@@ -261,6 +282,48 @@ class session l m nbPlayer st =
       in
       let pL = self#getPlayerList() in
         send pL
+
+        method playersColliding () =
+	 let rec collide l = 
+	  match l with
+	    [] -> ()
+	    | (c,p) :: t -> (
+			     let rec auxCollide la = 
+				match la with
+				 [] -> ()
+				 | (cc,pp) :: tt -> let (x,y) = pp#getPos () in 
+						     if p#isInCollisionWith x y then
+							(* a remplacer par choc elastique *)
+							(let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-.vx) (-.vy);
+							let (vx, vy) = pp#getSpeedVec () in pp#setSpeedVec (-.vx) (-.vy)); 
+							auxCollide tt
+			     in auxCollide t (* t, pour eviter de tester plusieurs fois les collisions entre memes vehicules et avec soi meme *)
+			    )
+	  in collide playerList
+
+	method playersCollidingObstacles () = 
+	 let rec collide l = 
+	  match l with
+	    [] -> ()
+	    | (c,p) :: t -> (
+			     let rec auxCollide la = 
+				match la with
+				 [] -> ()
+				 | (x,y) :: tt -> if p#isInCollisionWith x y then
+						   (* a remplacer par choc elastique *)
+						   let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-.vx) (-.vy);
+						   auxCollide tt
+			     in auxCollide obstacles (* t, pour eviter de tester plusieurs fois les collisions entre memes vehicules et avec soi meme *)
+			    )
+	  in collide playerList
+
+	method addObstacles (n : int) = (*place n obstacles*)
+	 let rec add x = 
+		match x with
+		0 -> ()
+		| _ -> obstacles <- ( (makeAleaPos (map#getWidth()) (map#getHeight())) :: obstacles); add (x-1)
+	 in add n
+
 
    method private win () =
       let scores = self#getScores () in

@@ -29,6 +29,7 @@ class gameMap h w =
       val maxSpeed = 3.0
       val circleCollider = 10.0
       val pi = 3.14
+      val ve_radius = 10.0 (* rayon de collision d'un vehicule, hitbox*)
 
      method init maxX maxY =
         let newPos = makeAleaPos maxX maxY in
@@ -55,14 +56,17 @@ class gameMap h w =
         !angle
       method getSpeedVec() =
         !speedVec
+      method setSpeedVec vx vy =
+	speedVec := (vx,vy)
       method setNewPos x y =
         pos := (x,y)
 
-      method isInCollisionWith (x : float) (y : float) = ()
-      (*
-        let radius = circleCollider in
+      method isInCollisionWith x y =
           let (w,z) = !pos in
-            (w -. colX <= x) && (x <= w +. colX) && (z -. colY <= y) && (y <= z +. colY)*)
+	    if (((w -. x) *. (w -. x) +. (z -. y) *. (z -. y)) <= (ve_radius *. ve_radius)) then
+		true
+	    else 
+		false
 
 
     end;;
