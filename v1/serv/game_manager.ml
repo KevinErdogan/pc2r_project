@@ -16,7 +16,7 @@ class game_manager st srt =
   object(self)
     val serv_tickrate = st
     val serv_refresh_tickrate = srt
-    val time_between_sessions = 5
+    val time_between_sessions = 20
     val mutex = Mutex.create ()
     val nbPlayerConnected = ref 0
     val isGameRunning = ref false
@@ -27,119 +27,151 @@ class game_manager st srt =
 
     method userConnected con_hand name =
       (
-        Mutex.lock mutex;
         if self#isNameExist name then
-          (Mutex.unlock mutex;
-          false)
+          false
         else
+          (* process that register a new player and alert others players *)
           let process () =
           (
-            print_string (name^" connected\n");
-            incr nbPlayerConnected;
-            self#alertNewPlayerConnected name;
-            print_string ("nb player connected : "^ string_of_int(!nbPlayerConnected) ^"\n");flush stdout;
             let newPlayer = new player name in
-            playerList <- (con_hand, newPlayer) :: playerList;
-            ( if not (!isGameRunning) then
-             con_hand#welcome false "" ""
-            else
-              con_hand#welcome true (currentSession#getScores()) (currentSession#getObjCoord());
-              currentSession#newPlayerJoined con_hand newPlayer
-            )
+              self#alertNewPlayerConnected name;
+              self#setPlayerList ((con_hand, newPlayer) :: playerList);
+              self#setNbPlayerConnected ((self#getNbPlayerConnected())+1);
+              print_string ("Player '"^name^"' connected.\nNumber Player Connected : "^ string_of_int(!nbPlayerConnected) ^ "\n"); flush stdout;
+              if not (self#getIsGameRunning ()) then
+               con_hand#welcome false "" ""
+              else
+              (
+                let curSession = self#getCurrentSession () in
+                  con_hand#welcome true (curSession#getScores()) (curSession#getObjCoord());
+                  curSession#registerNewPlayer con_hand newPlayer
+              )
           ) in
          process ();
 
-
-         (if not(!isGameRunning) && not(!isTimerOn) then
-           let _ = Thread.create timer (time_between_sessions, (self#startSession), self) in
-              isTimerOn := true
+         (* launch a new session by triggering a new timer *)
+         (if not(self#getIsGameRunning ()) && not(self#getIsTimerOn ()) then
+           let _ = Thread.create timer (time_between_sessions, (self#startSession), ()) in
+              self#setIsTimerOn true
           );
-
-        Mutex.unlock mutex;
-        true
+          true
       )
 
-    method userDeconnected name = (
-      Mutex.lock mutex;
-      (* remove player from list *)
-      let rec removePlayer name head l =
-        match l with
-        | [] -> []
-        | (c,p) :: [] -> if (p#getName()) == name then head else (List.append l head)
-        | (c,p) :: t -> if (p#getName()) == name then (List.append t head)
-                        else removePlayer name ((c,p) :: head) t
+      method userDeconnected name = (
+        (* remove player from list *)
+        let rec removePlayer name head l =
+          match l with
+          | [] -> []
+          | (c,p) :: [] -> if (p#getName()) == name then head else (List.append l head)
+          | (c,p) :: t -> if (p#getName()) == name then (List.append t head)
+                          else removePlayer name ((c,p) :: head) t
+          in
+        let result = removePlayer name [] playerList in
+          self#setPlayerList result;
+          self#setNbPlayerConnected ((self#getNbPlayerConnected()) - 1);
+          (if (self#getIsGameRunning()) then
+            (self#getCurrentSession())#playerLeft name);
+
+        (* alert player deconnected to others *)
+        let alert elem =
+          let (c,p) = elem in
+            c#playerDeconnected name
         in
-      let result = removePlayer name [] playerList in
+          let pL = self#getPlayerList () in
+            List.iter alert pL
+      )
 
-        playerList <- result;
-        decr nbPlayerConnected;
-        (if(!isGameRunning) then
-          currentSession#playerLeft name);
-
-      let rec alert l =
-        match l with
-          | [] -> ()
-          | (c,p) :: t -> (c#playerDeconnected name;
-                    alert t )
-      in
-        alert playerList;
-        Mutex.unlock mutex;
-    )
+      method private startSession () =
+        (* starting session *)
+        let nbPC = (self#getNbPlayerConnected ()) in
+          if nbPC > 0 then
+              (let session = (new session (self#getPlayerList ()) (new gameMap 800.0 600.0) nbPC serv_tickrate) in
+                self#setCurrentSession session;
+                self#setIsGameRunning true;
+                self#setIsTimerOn false;
+                session#run ();
+              (* end of session *)
+                self#setIsGameRunning false;
+                if ( (self#getNbPlayerConnected ()) > 0) then
+                (
+                  self#setIsTimerOn true;
+                  timer (time_between_sessions, self#startSession, ())
+                )
+              )
+            else
+              self#setIsTimerOn false
 
     method private isNameExist name =
-      let rec search l =
-        (match l with
-          | [] -> false
-          | (c,p) :: t -> (if (String.compare (p#getName()) name)==0 then
-                            true
-                           else search t)
-          )
+    let isIn = ref false in
+      let search elem =
+        let (c,p) = elem in
+          (if (String.compare (p#getName()) name)==0 then
+              isIn := true)
       in
-        search playerList
+        let pL = self#getPlayerList () in
+          List.iter search pL;
+          !isIn
 
-    method private alertNewPlayerConnected name = (
-      let rec alert l =
-        match l with
-          | [] -> ()
-          | (c,p) :: t -> (c#newPlayerConnected name;
-                    alert t )
+    method private alertNewPlayerConnected name =
+      let alert elem =
+        let (c,p) = elem in
+          c#newPlayerConnected name
       in
-        alert playerList
-      )
+        let pL = self#getPlayerList () in
+          List.iter alert pL
 
-    method getCurrentSession () =
-        currentSession
-    method setCurrentSession session =
-      currentSession <- session
-    method setIsGameRunning b =
-      isGameRunning := b
-    method isGameRunning () =
-      !isGameRunning
-    method setIsTimerOn b =
+    method private setPlayerList l =
+      Mutex.lock mutex;
+      playerList <- l;
+      Mutex.unlock mutex
+
+    method private getPlayerList () =
+      Mutex.lock mutex;
+      let pL = playerList in (* working ? *)
+      Mutex.unlock mutex;
+      pL
+
+    method private getIsGameRunning () =
+      Mutex.lock mutex;
+      let isGR = !isGameRunning in
+      Mutex.unlock mutex;
+      isGR
+
+    method private setIsGameRunning b =
+      Mutex.lock mutex;
+      isGameRunning := b;
+      Mutex.unlock mutex
+
+    method private getIsTimerOn () =
+      Mutex.lock mutex;
+      let isTO = !isTimerOn in
+      Mutex.unlock mutex;
+      isTO
+
+    method private setIsTimerOn b =
+      Mutex.lock mutex;
       isTimerOn := b;
-    method getPlayerList () =
-      playerList
-    method getNbPlayerConnected () =
-      !nbPlayerConnected
-    method getServerTickrateTime () =
-      (1/serv_tickrate)
+      Mutex.unlock mutex
 
-    method startSession gm =
-      (* starting session *)
-      let playerList = gm#getPlayerList()
-        and nbPlayer = gm#getNbPlayerConnected() in
-          if nbPlayer > 0 then
-            (let session = (new session playerList (new gameMap 800.0 600.0) nbPlayer serv_tickrate) in
-              gm#setCurrentSession session;
-              gm#setIsGameRunning true;
-              gm#setIsTimerOn false;
-              session#init ();
-              session#run ();
-            (* end of session *)
-              gm#setIsGameRunning false;
-              gm#setIsTimerOn true;
-              timer (time_between_sessions, gm#startSession, gm)
-              )
-          else
-            gm#setIsTimerOn false
+    method private getCurrentSession () =
+        Mutex.lock mutex;
+        let session = currentSession in
+        Mutex.unlock mutex;
+        session
+
+    method private setCurrentSession s =
+        Mutex.lock mutex;
+        currentSession <- s;
+        Mutex.unlock mutex
+
+    method private getNbPlayerConnected () =
+        Mutex.lock mutex;
+        let nb = !nbPlayerConnected in
+          Mutex.unlock mutex;
+          nb
+    method private setNbPlayerConnected (n: int) =
+      Mutex.lock mutex;
+      nbPlayerConnected := n;
+      Mutex.unlock mutex
+
   end;;

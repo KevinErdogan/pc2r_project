@@ -15,7 +15,7 @@ val isConnected = ref false
     let connect = Str.regexp "CONNECT/[a-z]+/"
     and exit = Str.regexp "EXIT/[a-z]+/"
     (* and newPos = Str.regexp "NEWPOS/X[0-9]+.[0-9]+Y[0-9]+.[0-9]+/" REMPLACER PAR NEWCOM *)
-    and newCom = Str.regexp "NEWCOM/A-?[0-9]+.[0-9]+T[0-9]+/" in (* limiter les float a 5 digits ?, virgule obligatoire ? *)
+    and newCom = Str.regexp "NEWCOM/A-?[0-9]+.[0-9]+T[0-9]+/" in
 
     let rec input_reader b =
         (if !b then
@@ -62,7 +62,6 @@ val isConnected = ref false
      else
       "WELCOME/attente/\n"
    in
-    print_string("iciiiiiiiiii "^score);flush stdout;
     self#sendOut msg
 
   method newPlayerConnected name =
@@ -105,10 +104,11 @@ val isConnected = ref false
     isRun := false;
     self#stop ())
 
+(*
   method newPos (coord:string) =
     if !isConnected && (game_manager#isGameRunning ()) then
       (game_manager#getCurrentSession())#receiveNewPos self coord
-
+*)
   method newCom comms =()
   (*
         if !isConnected && (game_manager#isGameRunning ()) then

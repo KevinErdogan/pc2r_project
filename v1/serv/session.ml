@@ -1,9 +1,9 @@
 open Connection_handler
 open Game
 
+let my_print_float x =
+  Printf.sprintf "%.4f" x
 
-
-let my_print_float x = let s = Printf.sprintf "%.4f" x in s
     (* session *)
     class session l m nbPlayer st =
       object(self)
@@ -11,42 +11,41 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
       val mutable playerList = (l : (connexion_kart * player) list)
       val mutable playerPoints = ([] : (player * int) list )
       val map = (m : gameMap)
-      val win_cap = 10
+      val win_cap = 50
       val hasPlayerWin = ref false
       val objRadius = 10.0
       val nextObj = ref (0.0, 0.0)
-      val timerRun = ref true
+      val isSessionEmpty = ref false
 
       initializer
-        let h = m#getHeight() and w = m#getWidth() in
+        (* init new objectif *)
+        let h = map#getHeight() and w = map#getWidth() in
          let newPos = makeAleaPos h w in
           nextObj := newPos;
-          let rec initAll l =
-            match l with
-              [] -> ()
-            | (c,p) :: t -> (playerPoints <- ((p,0) ::playerPoints));p#init h w; initAll t
+          (* for all players, put them at a random place and init their points to 0 *)
+          let initAll elem =
+            let (c,p) = elem in
+              (playerPoints <- ( (p,0) :: playerPoints) );
+              p#init h w
           in
-          initAll playerList
-
-    method init () =
-      self#sendStartPoses ()
+            List.iter initAll playerList
 
     method run () =
-      let _ = Thread.create self#server_tickrate () in
-      while not(!hasPlayerWin) do
-        Unix.sleep(1);print_string("run\n");flush stdout
+      self#sendStartSession ();
+      while not(!hasPlayerWin || !isSessionEmpty) do
+        Unix.sleep(serv_tickrate);
+        self#tick ();
+        print_string("tick\n");flush stdout
       done;
-      timerRun:=false
 
-    method sendStartPoses () =
+    method sendStartSession () =
       let coords = self#getCoords ()
         and coord = self#getObjCoord () in
-          let rec send l =
-            match l with
-              [] -> ()
-              | (c,p) :: t -> c#startSession coords coord; send t
+          let sender elem =
+            let (c,p) = elem in
+              c#startSession coords coord
           in
-            send playerList
+            List.iter sender playerList
 
     method newObj () =
       let rec nobj l coord scores =
@@ -62,6 +61,7 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
                 nobj playerList coord scores;
                 nextObj := (x,y)
 
+(*
       method receiveNewPos con_hand coord =
         let indexY = String.index coord 'Y' in
         let x = String.sub coord 1 (indexY-1)
@@ -78,7 +78,7 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
                                   search t con_hand x y
             in
           search playerList con_hand x y
-
+*)
 (*
       method receiveNewCom con_hand comms =
         ()
@@ -119,11 +119,11 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
           incrPoint playerList;
         self#newObj ()
 
-      method newPlayerJoined con_hand newPlayer =
-      let h = m#getHeight() and w = m#getWidth() in
-        newPlayer#init h w;
-        playerList <- ((con_hand, newPlayer) :: playerList);
-        playerPoints <- ((newPlayer, 0) :: playerPoints)
+      method registerNewPlayer con_hand newPlayer =
+        let h = m#getHeight() and w = m#getWidth() in
+          newPlayer#init h w;
+          playerList <- ((con_hand, newPlayer) :: playerList);
+          playerPoints <- ((newPlayer, 0) :: playerPoints)
 
       method playerLeft name =
         let rec removeFromList (head : (connexion_kart * player) list) (l : (connexion_kart * player) list) (name : string) =
@@ -134,7 +134,9 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
                           else
                             removeFromList ((c,p) :: head) t name
         in
-          playerList <- (removeFromList [] playerList name)
+          playerList <- (removeFromList [] playerList name);
+          if (playerList == []) then
+            isSessionEmpty := true
 (*;
         let rec removeFromPoints (head : (player * int) list) (l : (player * int) list) (name : string) =
           match l with
@@ -179,8 +181,8 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
              match l with
                [] -> str
              | (c,p) :: t -> let (x,y) = (p#getPos()) in
-                              let (vX,vY) = p#getV() and speed = p#getSpeed() in
-                               let aPlayerCoord = (p#getName())^":X" ^ my_print_float x ^ "Y" ^ my_print_float y ^ "VX" ^ my_print_float vX ^ "VY" ^ my_print_float vY ^ "T" ^ string_of_int speed in
+                              let (vX,vY) = p#getSpeedVec() and angle = p#getAngle() in
+                               let aPlayerCoord = (p#getName())^":X" ^ my_print_float x ^ "Y" ^ my_print_float y ^ "VX" ^ my_print_float vX ^ "VY" ^ my_print_float vY ^ "T" ^ my_print_float angle in
                                  let concat = (if (String.compare str "")==0 then
                                                  str ^ aPlayerCoord
                                                else
@@ -193,11 +195,6 @@ let my_print_float x = let s = Printf.sprintf "%.4f" x in s
           let (x,y) = !nextObj in
             "X"^my_print_float x^"Y"^my_print_float y
 
-      method server_tickrate () =
-          while !timerRun do
-              Unix.sleep(serv_tickrate);
-              self#tick ()
-          done
 
       method tick () =
        let vcoords = (*self#getCoords*)self#getVCoords () in

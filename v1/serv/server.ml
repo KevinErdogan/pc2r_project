@@ -7,7 +7,6 @@ object(s)
 val port_num = port
 val nb_pending = n
 val sock = Unix.socket Unix.PF_INET Unix.SOCK_STREAM 0
-(* t = Async_unix.Thread_pool.create 8 *)
 
 method start () =
 	let h_addr = Unix.inet_addr_of_string "127.0.0.1" in
