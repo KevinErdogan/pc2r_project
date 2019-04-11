@@ -80,10 +80,6 @@ val isConnected = ref false
     let msg = "NEWOBJ/" ^ coord ^"/"^ scores ^"/\n" in
       self#sendOut msg
 
-  method sessionTick coords =
-    let msg = "TICK/" ^ coords ^"/\n" in
-      self#sendOut msg
-
   method sessionTickV vcoords =
     let msg = "TICK/" ^ vcoords ^"/\n" in
       self#sendOut msg

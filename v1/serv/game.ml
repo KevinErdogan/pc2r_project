@@ -1,7 +1,8 @@
 let makeAleaPos maxX maxY =
-  let x = Random.float maxX in
-   let y = Random.float maxY in
-    (x, y)
+  let midX = (maxX/.2.0) and midY = (maxY/.2.0) in
+    let x = Random.float maxX in
+     let y = Random.float maxY in
+      (x-.midX, y-.midY)
 
 class gameMap h w =
   object(self)
@@ -27,15 +28,15 @@ class gameMap h w =
       val incrSpeed = 1.0
       val maxSpeed = 3.0
       val circleCollider = 10.0
+      val pi = 3.14
 
      method init maxX maxY =
         let newPos = makeAleaPos maxX maxY in
           pos := newPos
-
       method clock () =
-        angle := !angle +. angleAdd
+        angle := mod_float (!angle +. angleAdd) (2.0*.pi)
       method anticlock () =
-        angle := !angle -. angleAdd
+        angle := abs_float(mod_float (!angle -. angleAdd) (2.0*.pi))
       method thrust () =
         let (x,y) = !speedVec in
           let resultX = x +. incrSpeed and resultY = y +. incrSpeed in
@@ -45,6 +46,7 @@ class gameMap h w =
               speedVec := (resultX, y)
             else if (resultY < maxSpeed) then
               speedVec := (x, resultY)
+
       method getPos () =
         !pos
       method getName () =

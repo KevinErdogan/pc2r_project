@@ -16,7 +16,7 @@ class game_manager st srt =
   object(self)
     val serv_tickrate = st
     val serv_refresh_tickrate = srt
-    val time_between_sessions = 20
+    val time_between_sessions = 5
     val mutex = Mutex.create ()
     val nbPlayerConnected = ref 0
     val isGameRunning = ref false
