@@ -13,13 +13,16 @@ public class NetClientOutput {
 	
 	public void connect(String name) {
 		os.println("CONNECT/"+name+"/");
+		System.out.println("sending connect");
 	}
 	
 	public void exit(String name) {
 		os.println("EXIT/"+name+"/");
+		System.out.println("sending exit");
 	}
 	
 	public void newCom(String cmds) {
 		os.println("NEWCOM/"+cmds+"/");
+		System.out.println("sending cmds");
 	}
 }
