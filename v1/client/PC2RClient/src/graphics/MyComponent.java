@@ -12,6 +12,7 @@ import javax.swing.JComponent;
 import model.Game;
 import model.Objectif;
 import model.Obstacle;
+import model.Player;
 import utils.Pair;
 import utils.Point2D;
 
@@ -29,6 +30,7 @@ public class MyComponent extends JComponent {
 	private boolean isInGame = false;
 
 	public MyComponent() {
+		
 	}
 	
 	@Override
@@ -43,13 +45,12 @@ public class MyComponent extends JComponent {
 			g2.setStroke(new BasicStroke(3));
 			Arc2D arc = new Arc2D.Double();
 			
-			List<Pair<String, Point2D>> players = game.getPlayers();
+			List<Player> players = game.getPlayers();
 			int i =1;
-			for(Pair<String, Point2D> p : players) {
+			for(Player p : players) {
 				// update playernameList in interface
-				Point2D pos = p.getRight();
-				arc.setArcByCenter(pos.getX()+(game.getMap().getWidth()/2), 
-						pos.getY()+(game.getMap().getHeight()/2), 10, 0, 360, Arc2D.OPEN);
+				Point2D pos = p.getPos();
+				arc.setArcByCenter(pos.getX(),pos.getY(), 10, 0, 360, Arc2D.OPEN);
 				g2.draw(arc);
 				/*String value = String.valueOf(i);
 				g2.drawString(value, (float) (pos.getX() +(game.getMap().getHeight()/2)),
@@ -73,7 +74,7 @@ public class MyComponent extends JComponent {
 			}
 		}
 	}
-
+	
 	public void start(Game currentGame) {
 		game = currentGame;
 		isInGame=true;
@@ -86,4 +87,14 @@ public class MyComponent extends JComponent {
 		game=null;
 		refresher.stop();
 	}
+
+	public boolean isInGame() {
+		return isInGame;
+	}
+
+	public Game getGame() {
+		return game;
+	}
+	
+	
 }

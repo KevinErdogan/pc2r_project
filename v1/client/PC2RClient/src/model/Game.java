@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+import graphics.ClientFrame;
 import utils.Pair;
 import utils.Point2D;
 
@@ -12,32 +13,41 @@ public class Game {
 	public static final int MAP_WIDTH = 800;
 	
 	private List<Pair<String, Integer>> scores;
-	private List<Pair<String, Point2D>> players;
+	//private List<Pair<String, Point2D>> players;
+	private List<Player> players;
 	private Map map;
 	private List<Obstacle> obstacles;
 	private boolean isObstaclesSet;
 	private Objectif objectif;
 
-	public Game(List<Pair<String, Point2D>> players, Point2D objPt) {
-		this.players = new LinkedList<Pair<String, Point2D>>();
+	public Game(List<Pair<String, Point2D>> players, Point2D objPt, ClientFrame cf) {
+		//this.players = new LinkedList<Pair<String, Point2D>>();
+		this.players = new ArrayList<Player>();
 		this.obstacles = new ArrayList<Obstacle>();
 		
 		//test
 		this.obstacles.add(new Obstacle(50.0, 30.0));
 		//
-		
+		map = new Map(Game.MAP_WIDTH, Game.MAP_HEIGHT); // ?
 		this.isObstaclesSet = false;
 			for(Pair<String, Point2D> p : players) {
+				System.out.println(p.getLeft());
 				Point2D pos = (Point2D) p.getRight();
-				this.players.add(new Pair<String, Point2D>(p.getLeft(), pos));
+				//this.players.add(new Pair<String, Point2D>(p.getLeft(), pos));
+				Player pl = new Player(p.getLeft(), pos, map);
+				this.players.add(pl);
+				if(cf.getClient().getMyClientPlayer() == null &&  p.getLeft().equals(cf.getClient().getName())) {
+					cf.getClient().setMyClientPlayer(pl);
+				}
 			}
 		
 		objectif = new Objectif(objPt);
-		map = new Map(Game.MAP_WIDTH, Game.MAP_HEIGHT); // ?
+		
 	}
 	
-	public List<Pair<String, Point2D>> getPlayers() {
-		return new LinkedList<Pair<String, Point2D>>(players);
+	public List<Player> getPlayers() {
+		//return new LinkedList<Pair<String, Point2D>>(players);
+		return new ArrayList<Player>(players);
 	}
 
 	public void setObjPos(Point2D pos) {
@@ -52,7 +62,7 @@ public class Game {
 		return scores;
 	}
 	
-	public void addNewPlayer(Pair<String, Point2D> p) {//un nouveau joueur rejoint la partie
+	public void addNewPlayer(Player p) {//un nouveau joueur rejoint la partie
 		this.players.add(p);
 	}
 	
@@ -77,6 +87,10 @@ public class Game {
 		return obstacles;
 	}
 	
-	
+	public void moveAllPlayers() {
+		for(Player p : players) {
+			p.move();
+		}
+	}
 	
 }

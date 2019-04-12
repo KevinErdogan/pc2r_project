@@ -19,8 +19,10 @@ public class GameScreenThread implements Runnable {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
+			if(gamePanel.isInGame())
+				gamePanel.getGame().moveAllPlayers();
 			gamePanel.repaint();
+			
 		}
 	}
 

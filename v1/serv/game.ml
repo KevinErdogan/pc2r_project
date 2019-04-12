@@ -17,12 +17,13 @@ class gameMap h w =
   end;;
 
   (* player, un vehicule *)
-  class player n =
+  class player n mapHei mapWid =
     object(self)
       val pos = ref (0.0, 0.0)
       val angle = ref 0.0
       val speedVec = ref (0.0, 0.0)
-
+      val mapH = mapHei
+      val mapW = mapWid
       val name = (n : string)
       val angleAdd = 10.0
       val incrSpeed = 1.0
@@ -54,8 +55,8 @@ class gameMap h w =
       method move () = (* avance, arene thorique *)
 	let (x,y) = !pos in
 	 let (vx,vy) = !speedVec in
-	  let newX = (x + vx + map#getWidth ()) mod map#getWidth () in
-	  let newY = (y + vy + map#getHeight ()) mod map#getHeight () in
+	  let newX = mod_float (x +. vx +. mapW)  (mapW) in
+	  let newY = mod_float (y +. vy +.mapH) (mapH) in
 	  pos := (newX, newY)
 
       method getPos () =

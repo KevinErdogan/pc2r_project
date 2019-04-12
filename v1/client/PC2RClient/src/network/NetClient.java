@@ -5,6 +5,8 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
+import model.Player;
+
 public class NetClient {
 	//public static final int TIMEOUT = 10;
 	private Socket sock = null;
@@ -15,6 +17,7 @@ public class NetClient {
 	private NetClientOutput cho;
 	
 	private String name = null;
+	private Player myClientPlayer = null;
 	private LinkedList<NetworkObserver> observers = new LinkedList<NetworkObserver>();
 	
 	public NetClient(String host, int port) {
@@ -107,5 +110,19 @@ public class NetClient {
 	public void newCom(String cmds) {
 		cho.newCom(cmds);
 	}
+
+	public Player getMyClientPlayer() {
+		return myClientPlayer;
+	}
+
+	public void setMyClientPlayer(Player myClientPlayer) {System.out.println("init net client player");
+		this.myClientPlayer = myClientPlayer;
+	}
+
+	public String getName() {
+		return name;
+	}
+	
+	
 
 }

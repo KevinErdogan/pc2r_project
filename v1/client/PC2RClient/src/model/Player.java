@@ -13,7 +13,8 @@ public class Player {
 	private final double thrustit = 0.10;//valeur a determiner pour que ce soit jouable (acceleration)
 	private final double turnit = 10.0;//changement de direction(virage) a determiner
 	private final double radius = 10.0;//valeur a determiner (hitbox en forme de cercle)
-	private final double maxV = 3.0;
+	private final double maxV = 1.0;
+	private final double minV = -1.0;
 	//faire correspondre les valeurs thrustit, turnit et radius avec le serveur
 	
 	public Player(String name, Point2D pos, Map m) {
@@ -51,19 +52,31 @@ public class Player {
 	
 	//controle du vehicule
 	public void clock() {
-		this.angle = (this.angle - this.turnit + 360.0)%360.0;
+		this.angle = (this.angle - this.turnit);
+		System.out.println(angle+" "+Math.cos(this.angle)+" "+Math.sin(this.angle));
 	}
 	
 	public void anticlock() {
-		this.angle = (this.angle + this.turnit + 360.0)%360.0;
+		this.angle = (this.angle + this.turnit);
+		System.out.println(angle+" "+Math.cos(this.angle)+" "+Math.sin(this.angle));
 	}
 	
-	public void thrust() {
+	public void thrust() {System.out.println("accel");
 		double tmp_vx = this.vx + this.thrustit*Math.cos(this.angle);
 		double tmp_vy = this.vy + this.thrustit*Math.sin(this.angle);
-		if(tmp_vx < this.maxV)
+		if(tmp_vx < this.maxV && tmp_vx > this.minV)
 			this.vx = tmp_vx;
-		if(tmp_vy < this.maxV)
+		if(tmp_vy < this.maxV && tmp_vy > this.minV)
+			this.vy = tmp_vy;
+		System.out.println(this.vx+" "+this.vy);
+	}
+	
+	public void decelerate() {
+		double tmp_vx = this.vx - this.thrustit*Math.cos(this.angle);
+		double tmp_vy = this.vy - this.thrustit*Math.sin(this.angle);
+		if(tmp_vx < this.maxV && tmp_vx > this.minV)
+			this.vx = tmp_vx;
+		if(tmp_vy < this.maxV && tmp_vy > this.minV)
 			this.vy = tmp_vy;
 	}
 	

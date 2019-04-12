@@ -1,7 +1,5 @@
 package graphics;
 
-import java.awt.Component;
-import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.List;
 
@@ -53,10 +51,10 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
         Left = new javax.swing.JLabel();
         Backward = new javax.swing.JLabel();
         Right = new javax.swing.JLabel();
-        forwardField = new javax.swing.JTextField();
-        backwardField = new javax.swing.JTextField();
-        leftField = new javax.swing.JTextField();
-        rightField = new javax.swing.JTextField();
+        forwardField = new javax.swing.JOptionPane("Z");
+        backwardField = new javax.swing.JOptionPane("NONE");
+        leftField = new javax.swing.JOptionPane("Q");
+        rightField = new javax.swing.JOptionPane("D");
         backButton = new javax.swing.JButton();
         escapePanel = new javax.swing.JPanel();
         menuLabel = new javax.swing.JLabel();
@@ -441,6 +439,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 				JOptionPane.showMessageDialog(this, e.getMessage(), "Disconnect Error", JOptionPane.ERROR_MESSAGE);
 			}
     	}
+    	System.out.println(serveripField.getText());
     	client = new NetClient(serveripField.getText(), Integer.parseInt(serverportField.getText()));
     	client.registerObserver(this);
     	try {
@@ -500,7 +499,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 				List<Pair<String, Point2D>> coords = Util.getValueInCoords((String) params.get(0));
 				Point2D coord = Util.getValueInCoord((String) params.get(1));
 				
-				game = new Game(coords, coord);
+				game = new Game(coords, coord, this);
 				gamePanel.start(game);
 				break;
 			case WINNER:
@@ -513,6 +512,11 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 		}
 	}
     
+	
+	public NetClient getClient() {
+		return client;
+	}
+
 	public javax.swing.JPanel getEscapePanel() {
 		// TODO Auto-generated method stub
 		return escapePanel;
@@ -571,7 +575,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     private javax.swing.JLabel Left;
     private javax.swing.JLabel Right;
     private javax.swing.JButton backButton;
-    private javax.swing.JTextField backwardField;
+    private JOptionPane backwardField;
     private javax.swing.JButton configButton;
     private javax.swing.JPanel configPanel;
     private javax.swing.JPanel configPanelContent;
@@ -579,15 +583,15 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     private javax.swing.JButton continueButton;
     private javax.swing.JPanel escapePanel;
     private javax.swing.JButton exitButton;
-    private javax.swing.JTextField forwardField;
+    private JOptionPane forwardField;
     private MyComponent gamePanel;
     private javax.swing.JPanel infoPanel;
     private javax.swing.JPanel infoPanelContent;
-    private javax.swing.JTextField leftField;
+    private JOptionPane leftField;
     private javax.swing.JLayeredPane mainLayeredPane;
     private javax.swing.JLabel menuLabel;
     private javax.swing.JButton playButton;
-    private javax.swing.JTextField rightField;
+    private JOptionPane rightField;
     private javax.swing.JTextField serveripField;
     private javax.swing.JLabel serveripLabel;
     private javax.swing.JTextField serverportField;

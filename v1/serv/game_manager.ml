@@ -22,7 +22,7 @@ class game_manager st srt =
     val isGameRunning = ref false
     val mutable playerList = ( [] : ( connexion_kart * player ) list )
     val relance = ref false
-    val mutable currentSession = new session [] (new gameMap 100.0 100.0) 0 st
+    val mutable currentSession = new session [] (new gameMap 600.0 800.0) 0 st
     val isTimerOn = ref false
 
     method userConnected con_hand name =
@@ -33,7 +33,7 @@ class game_manager st srt =
           (* process that register a new player and alert others players *)
           let process () =
           (
-            let newPlayer = new player name in
+            let newPlayer = new player name 600.0 800.0 in
               self#alertNewPlayerConnected name;
               self#setPlayerList ((con_hand, newPlayer) :: playerList);
               self#setNbPlayerConnected ((self#getNbPlayerConnected())+1);
