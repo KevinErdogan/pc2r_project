@@ -35,9 +35,11 @@ class gameMap h w =
         let newPos = makeAleaPos maxX maxY in
           pos := newPos
       method clock () =
-        angle := mod_float (!angle +. angleAdd) (2.0*.pi)
+        (*angle := mod_float (!angle +. angleAdd) (2.0*.pi)*)
+	angle := mod_float (!angle +. angleAdd) (360.0)
       method anticlock () =
-        angle := abs_float(mod_float (!angle -. angleAdd) (2.0*.pi))
+        (*angle := abs_float(mod_float (!angle -. angleAdd) (2.0*.pi))*)
+	angle := mod_float (!angle -. angleAdd +. 360.0) (360.0)
       method thrust () =
         let (x,y) = !speedVec in
           let resultX = x +. incrSpeed and resultY = y +. incrSpeed in
@@ -47,6 +49,14 @@ class gameMap h w =
               speedVec := (resultX, y)
             else if (resultY < maxSpeed) then
               speedVec := (x, resultY)
+
+
+      method move () = (* avance, arene thorique *)
+	let (x,y) = !pos in
+	 let (vx,vy) = !speedVec in
+	  let newX = (x + vx + map#getWidth ()) mod map#getWidth () in
+	  let newY = (y + vy + map#getHeight ()) mod map#getHeight () in
+	  pos := (newX, newY)
 
       method getPos () =
         !pos

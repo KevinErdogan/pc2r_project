@@ -9,4 +9,12 @@ public class Map {
 		height=h;
 	}
 
+	public int getWidth() {
+		return width;
+	}
+
+	public int getHeight() {
+		return height;
+	}
+	
 }

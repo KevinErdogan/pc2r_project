@@ -11,6 +11,7 @@ import javax.swing.JComponent;
 
 import model.Game;
 import model.Objectif;
+import model.Obstacle;
 import utils.Pair;
 import utils.Point2D;
 
@@ -47,10 +48,12 @@ public class MyComponent extends JComponent {
 			for(Pair<String, Point2D> p : players) {
 				// update playernameList in interface
 				Point2D pos = p.getRight();
-				arc.setArcByCenter(pos.getX(), pos.getY(), 10, 0, 360, Arc2D.OPEN);
+				arc.setArcByCenter(pos.getX()+(game.getMap().getWidth()/2), 
+						pos.getY()+(game.getMap().getHeight()/2), 10, 0, 360, Arc2D.OPEN);
 				g2.draw(arc);
-				String value = String.valueOf(i);
-				g2.drawString(value, (float) (pos.getX()), (float) (pos.getY()));
+				/*String value = String.valueOf(i);
+				g2.drawString(value, (float) (pos.getX() +(game.getMap().getHeight()/2)),
+						(float) (pos.getY()+(game.getMap().getHeight()/2)));*///dessine pas au bon endroit 
 			}
 			
 			Objectif obj = game.getObj();
@@ -58,6 +61,16 @@ public class MyComponent extends JComponent {
 			arc.setArcByCenter(pos.getX(), pos.getY(), 10, 0, 360, Arc2D.OPEN);
 			g2.setColor(Color.red);
 			g2.drawOval(((int)pos.getX())-8, ((int)pos.getY())-8, 8, 8);
+			
+			List<Obstacle> obstacles = game.getObstacles();
+			
+			g2.setColor(Color.BLUE);
+			for(Obstacle o : obstacles) {
+				pos = o.getPos();
+				arc.setArcByCenter(pos.getX()+(game.getMap().getWidth()/2), 
+						pos.getY()+(game.getMap().getHeight()/2), 10, 0, 360, Arc2D.OPEN);
+				g2.draw(arc);
+			}
 		}
 	}
 
