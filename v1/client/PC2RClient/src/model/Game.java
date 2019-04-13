@@ -1,10 +1,8 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
-import graphics.ClientFrame;
 import utils.Pair;
 import utils.Point2D;
 
@@ -13,40 +11,48 @@ public class Game {
 	public static final int MAP_WIDTH = 800;
 	
 	private List<Pair<String, Integer>> scores;
-	//private List<Pair<String, Point2D>> players;
 	private List<Player> players;
-	private Map map;
 	private List<Obstacle> obstacles;
 	private boolean isObstaclesSet;
 	private Objectif objectif;
+	private Player myPlayer;
 
-	public Game(List<Pair<String, Point2D>> players, Point2D objPt, ClientFrame cf) {
-		//this.players = new LinkedList<Pair<String, Point2D>>();
+	public Game(List<Pair<String, Point2D>> players, Point2D objPt, String myPlayerName) {
 		this.players = new ArrayList<Player>();
 		this.obstacles = new ArrayList<Obstacle>();
+		this.scores = new ArrayList<Pair<String,Integer>>();
 		
 		//test
 		this.obstacles.add(new Obstacle(50.0, 30.0));
 		//
-		map = new Map(Game.MAP_WIDTH, Game.MAP_HEIGHT); // ?
 		this.isObstaclesSet = false;
+		if (players != null) {
 			for(Pair<String, Point2D> p : players) {
-				System.out.println(p.getLeft());
-				Point2D pos = (Point2D) p.getRight();
-				//this.players.add(new Pair<String, Point2D>(p.getLeft(), pos));
-				Player pl = new Player(p.getLeft(), pos, map);
+				String name = p.getLeft();
+				scores.add(new Pair<String, Integer>(name, 0));
+				Point2D pos = p.getRight();
+				Player pl = new Player(name, pos);
 				this.players.add(pl);
-				if(cf.getClient().getMyClientPlayer() == null &&  p.getLeft().equals(cf.getClient().getName())) {
-					cf.getClient().setMyClientPlayer(pl);
-				}
+				if(name.contentEquals(myPlayerName))
+					myPlayer=pl;
 			}
+		}
 		
 		objectif = new Objectif(objPt);
-		
+	}
+	
+	public void update(List<Pair<String, Point2D>> tick) {
+		for(Pair<String, Point2D> p : tick) {
+			for(Player pl : players) {
+				if(pl.getName().equals(p.getLeft())) {
+					pl.setPos(p.getRight());
+					break;
+				}
+			}
+		}
 	}
 	
 	public List<Player> getPlayers() {
-		//return new LinkedList<Pair<String, Point2D>>(players);
 		return new ArrayList<Player>(players);
 	}
 
@@ -79,9 +85,6 @@ public class Game {
 		
 	}
 
-	public Map getMap() {
-		return map;
-	}
 
 	public List<Obstacle> getObstacles() {
 		return obstacles;
@@ -91,6 +94,14 @@ public class Game {
 		for(Player p : players) {
 			p.move();
 		}
+	}
+
+	public void setScores(List<Pair<String, Integer>> scores) {
+		this.scores=scores;
+	}
+
+	public Player getMyPlayer() {
+		return myPlayer;
 	}
 	
 }

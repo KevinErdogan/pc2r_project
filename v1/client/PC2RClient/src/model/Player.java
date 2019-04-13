@@ -3,92 +3,84 @@ package model;
 import utils.Point2D;
 
 public class Player {
-	private Map m;
-	
 	private String name;
 	private Point2D pos;
-	private double vx; //vitesse
-	private double vy; //vitesse
-	private double angle;
 	private final double thrustit = 0.10;//valeur a determiner pour que ce soit jouable (acceleration)
 	private final double turnit = 10.0;//changement de direction(virage) a determiner
-	private final double radius = 10.0;//valeur a determiner (hitbox en forme de cercle)
+	private final double radius = 10.0;//valeur arg0a determiner (hitbox en forme de cercle)
 	private final double maxV = 1.0;
 	private final double minV = -1.0;
 	//faire correspondre les valeurs thrustit, turnit et radius avec le serveur
 	
-	public Player(String name, Point2D pos, Map m) {
+	public Player(String name, Point2D pos) {
 		this.name = name;
 		this.pos = pos;
 		
-		this.vx = 0.0;//initialement a l'arret
-		this.vy = 0.0;
-		this.angle = 0.0;
-		this.m = m;
+		pos.vX = 0.0;//initialement a l'arret
+		pos.vY = 0.0;
+		pos.angle = 0.0;
 	}
 	
-	public Player(String name, double x, double y, Map m) {
+	public Player(String name, double x, double y) {
 		this.name = name;
 		this.pos = new Point2D(x,y);
-		this.vx = 0.0;
-		this.vy = 0.0;
-		this.angle = 0.0;
-		this.m = m;
+		pos.vX = 0.0;
+		pos.vY = 0.0;
+		pos.angle = 0.0;
 	}
 	
 	//update avec donnees serveur (recu avec TICK)
 	public void serveurUpdate(double x, double y, double vx, double vy, double angle) {
 		this.pos = new Point2D(x,y);
-		this.vx = vx;
-		this.vy = vy;
-		this.angle = angle;
+		pos.vX = vx;
+		pos.vY = vy;
+		pos.angle = angle;
 	}
 	
 	//deplacement
 	public void move() {
-		this.pos = new Point2D( (pos.getX()+this.vx+m.getWidth())%m.getWidth(),
-								(pos.getY()+this.vy+m.getHeight())%m.getHeight() );//arene thorique
+		this.pos = new Point2D( (pos.x+pos.vX+Game.MAP_WIDTH)%Game.MAP_WIDTH,
+								(pos.y+pos.vY+Game.MAP_HEIGHT )%Game.MAP_HEIGHT );//arene thorique
 	}
 	
 	//controle du vehicule
 	public void clock() {
-		this.angle = (this.angle - this.turnit);
-		System.out.println(angle+" "+Math.cos(this.angle)+" "+Math.sin(this.angle));
+		pos.angle = (pos.angle - this.turnit);
+		System.out.println(pos.angle+" "+Math.cos(pos.angle)+" "+Math.sin(pos.angle));
 	}
 	
 	public void anticlock() {
-		this.angle = (this.angle + this.turnit);
-		System.out.println(angle+" "+Math.cos(this.angle)+" "+Math.sin(this.angle));
+		pos.angle = (pos.angle + this.turnit);
 	}
 	
 	public void thrust() {System.out.println("accel");
-		double tmp_vx = this.vx + this.thrustit*Math.cos(this.angle);
-		double tmp_vy = this.vy + this.thrustit*Math.sin(this.angle);
+		double tmp_vx = pos.vX + this.thrustit*Math.cos(pos.angle);
+		double tmp_vy = pos.vY + this.thrustit*Math.sin(pos.angle);
 		if(tmp_vx < this.maxV && tmp_vx > this.minV)
-			this.vx = tmp_vx;
+			pos.vX = tmp_vx;
 		if(tmp_vy < this.maxV && tmp_vy > this.minV)
-			this.vy = tmp_vy;
-		System.out.println(this.vx+" "+this.vy);
+			pos.vY = tmp_vy;
+		System.out.println(pos.vX+" "+pos.vY);
 	}
 	
 	public void decelerate() {
-		double tmp_vx = this.vx - this.thrustit*Math.cos(this.angle);
-		double tmp_vy = this.vy - this.thrustit*Math.sin(this.angle);
+		double tmp_vx = pos.vX - this.thrustit*Math.cos(pos.angle);
+		double tmp_vy = pos.vY - this.thrustit*Math.sin(pos.angle);
 		if(tmp_vx < this.maxV && tmp_vx > this.minV)
-			this.vx = tmp_vx;
+			pos.vX = tmp_vx;
 		if(tmp_vy < this.maxV && tmp_vy > this.minV)
-			this.vy = tmp_vy;
+			pos.vY = tmp_vy;
 	}
 	
 	public boolean hasCollideWithObstacle(Obstacle obs) {//reste a gerer les collisions "thorique"
-		return ((this.pos.getX() - obs.getPos().getX()) * (this.pos.getX() - obs.getPos().getX()) 
-				+ (this.pos.getY() - obs.getPos().getY()) * (this.pos.getY() - obs.getPos().getY()))
+		return ((this.pos.x - obs.getPos().x) * (this.pos.x - obs.getPos().x) 
+				+ (this.pos.y - obs.getPos().y) * (this.pos.y - obs.getPos().y))
 				<= (this.radius * obs.getRadius());
 	}
 	
 	public boolean hasCollideWithPlayer(Player pl) {//reste a gerer les collisions "thorique"
-		return  ((this.pos.getX() - pl.getPos().getX()) * (this.pos.getX() - pl.getPos().getX()) 
-				+ (this.pos.getY() - pl.getPos().getY()) * (this.pos.getY() - pl.getPos().getY()))
+		return  ((this.pos.x - pl.getPos().x) * (this.pos.x - pl.getPos().x) 
+				+ (this.pos.y - pl.getPos().y) * (this.pos.y - pl.getPos().y))
 				<= (this.radius * pl.getRadius()); 
 	}
 	
@@ -102,27 +94,27 @@ public class Player {
 	}
 
 	public double getVx() {
-		return vx;
+		return pos.vX;
 	}
 
 	public void setVx(double vx) {
-		this.vx = vx;
+		pos.vX = vx;
 	}
 
 	public double getVy() {
-		return vy;
+		return pos.vY;
 	}
 
 	public void setVy(double vy) {
-		this.vy = vy;
+		pos.vY = vy;
 	}
 
 	public double getAngle() {
-		return angle;
+		return pos.angle;
 	}
 
 	public void setAngle(double angle) {
-		this.angle = angle;
+		this.pos.angle = angle;
 	}
 
 	public String getName() {
@@ -132,8 +124,5 @@ public class Player {
 	public double getRadius() {
 		return radius;
 	}
-	
-	
-	
 	
 }

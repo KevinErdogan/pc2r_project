@@ -28,6 +28,10 @@ public class MyComponent extends JComponent {
 	private GameScreenThread refresher;
 	private Game game;
 	private boolean isInGame = false;
+	
+	private int scoresLength = 150;
+	private int scaleX = Game.MAP_WIDTH/2;
+	private int scaleY = Game.MAP_HEIGHT/2;
 
 	public MyComponent() {
 		
@@ -38,7 +42,7 @@ public class MyComponent extends JComponent {
 		super.paintComponent(g);
 		// background
 		g.setColor(new java.awt.Color(102, 102, 102));
-		g.fillRect(0, 0, getWidth(), getHeight());
+		g.fillRect(scoresLength, 0, getWidth(), getHeight());
 		if(isInGame) {
 			Graphics2D g2 = (Graphics2D) g;
 			g2.setColor(Color.WHITE);
@@ -48,28 +52,34 @@ public class MyComponent extends JComponent {
 			List<Player> players = game.getPlayers();
 			int i =1;
 			for(Player p : players) {
-				// update playernameList in interface
 				Point2D pos = p.getPos();
-				arc.setArcByCenter(pos.getX(),pos.getY(), 10, 0, 360, Arc2D.OPEN);
+				arc.setArcByCenter(scoresLength+scaleX+pos.x,scaleY+pos.y, 10, 0, 360, Arc2D.OPEN);
 				g2.draw(arc);
-				/*String value = String.valueOf(i);
-				g2.drawString(value, (float) (pos.getX() +(game.getMap().getHeight()/2)),
-						(float) (pos.getY()+(game.getMap().getHeight()/2)));*///dessine pas au bon endroit 
+				String value = String.valueOf(i);
+				g2.drawString(value, (float) (scoresLength+pos.x + scaleX),
+						(float) (pos.y+scaleY));//dessine pas au bon endroit 
 			}
 			
 			Objectif obj = game.getObj();
 			Point2D pos = obj.getPos();
-			arc.setArcByCenter(pos.getX(), pos.getY(), 10, 0, 360, Arc2D.OPEN);
+			arc.setArcByCenter(scoresLength+scaleX+pos.x, scaleY+pos.y, 10, 0, 360, Arc2D.OPEN);
 			g2.setColor(Color.red);
-			g2.drawOval(((int)pos.getX())-8, ((int)pos.getY())-8, 8, 8);
+			g2.drawOval(((int)pos.x)+scoresLength+scaleX-8, ((int)pos.y)+scaleY-8, 8, 8);
+			
+			List<Pair<String, Integer>> scores = game.getScores();
+			g2.setColor(Color.BLACK);
+			int yCmp=20;
+			for(Pair<String, Integer> p : scores) {
+				g2.drawString(p.getLeft()+" : "+p.getRight(), 10, yCmp);
+				yCmp+=20;
+			}
 			
 			List<Obstacle> obstacles = game.getObstacles();
 			
 			g2.setColor(Color.BLUE);
 			for(Obstacle o : obstacles) {
 				pos = o.getPos();
-				arc.setArcByCenter(pos.getX()+(game.getMap().getWidth()/2), 
-						pos.getY()+(game.getMap().getHeight()/2), 10, 0, 360, Arc2D.OPEN);
+				arc.setArcByCenter(pos.x+scaleX, pos.y+scaleY, 10, 0, 360, Arc2D.OPEN);
 				g2.draw(arc);
 			}
 		}

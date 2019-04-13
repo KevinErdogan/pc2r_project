@@ -12,7 +12,7 @@ public class Obstacle {
 	}
 	
 	public Obstacle(Point2D pt) {
-		this.pos = new Point2D(pt.getX(), pt.getY());
+		this.pos = new Point2D(pt.x, pt.y);
 	}
 	
 	public Point2D getPos() {

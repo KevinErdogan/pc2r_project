@@ -69,15 +69,9 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
         setTitle("Mario Kart 2.0 - Kevin & Firat Prod.");
         setFont(new java.awt.Font("Arial", 1, 12)); // NOI18N
         setForeground(new java.awt.Color(255, 255, 255));
-        setPreferredSize(new java.awt.Dimension(800, 600));
+        setPreferredSize(new java.awt.Dimension(950, 600));
         setResizable(false);
-        /*
-        addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                formKeyPressed(evt);
-            }
-        });*/
-
+        
         mainLayeredPane.setPreferredSize(this.getPreferredSize());
         mainLayeredPane.setLayout(new java.awt.CardLayout());
 
@@ -415,15 +409,16 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
         
         /////////////////////////////////////////////////////////////////////////////////
         escapePanel.setVisible(false);
-        gamePanel.addKeyListener(new MyKeyListener(this));
-        usernameField.setText("hello");
+        myKeyListener = new MyKeyListener(this);
+        gamePanel.addKeyListener(myKeyListener);
+        usernameField.setText("leboss");
         serveripField.setText("127.0.0.1");
         serverportField.setText("1234");
         
         pack();
     }// </editor-fold>                        
      /*****************************************************************************************/     
-    
+    private MyKeyListener myKeyListener;
     private NetClient client=null;
     private Game game;
     
@@ -439,7 +434,6 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 				JOptionPane.showMessageDialog(this, e.getMessage(), "Disconnect Error", JOptionPane.ERROR_MESSAGE);
 			}
     	}
-    	System.out.println(serveripField.getText());
     	client = new NetClient(serveripField.getText(), Integer.parseInt(serverportField.getText()));
     	client.registerObserver(this);
     	try {
@@ -475,15 +469,16 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 			case WELCOMEGAME:
 				welcome();
 				// jeu
-				/*
+				
 				{
 					List<Object> params = e.getParameters();
-					String scors =(String) params.get(0); // to display ...
 					Point2D coord = Util.getValueInCoord((String) params.get(1));
-					List<Pair<String, Integer>> scores;
-					game = new Game(scores, coord);
+					List<Pair<String, Integer>> scores = Util.getValueInScores((String) params.get(0));
+					game = new Game(null, coord, client.getName());
+					game.setScores(scores);
+					myKeyListener.init(game);
 				}
-				*/
+			
 				break;
 			case DENIED:
 				denied();
@@ -494,12 +489,22 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 			case NEWPLAYER:
 				
 				break;
+				
+			case TICK:
+				{
+					List<Object> params = e.getParameters();
+					List<Pair<String, Point2D>> vcoords = Util.getValueInVcoords((String) params.get(0));
+					game.update(vcoords);
+					
+				}	
+				break;
 			case NEWSESSION:
 				List<Object> params = e.getParameters();
 				List<Pair<String, Point2D>> coords = Util.getValueInCoords((String) params.get(0));
 				Point2D coord = Util.getValueInCoord((String) params.get(1));
 				
-				game = new Game(coords, coord, this);
+				game = new Game(coords, coord, client.getName());
+				myKeyListener.init(game);
 				gamePanel.start(game);
 				break;
 			case WINNER:
@@ -513,12 +518,7 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 	}
     
 	
-	public NetClient getClient() {
-		return client;
-	}
-
 	public javax.swing.JPanel getEscapePanel() {
-		// TODO Auto-generated method stub
 		return escapePanel;
 	}
     
@@ -535,6 +535,10 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
         configPanel.setVisible(false);
     }     
     
+    
+    public Game getGame() {
+    	return game;
+    }
     
     
     /******************************************************************************************/
