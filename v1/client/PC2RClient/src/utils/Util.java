@@ -1,5 +1,6 @@
 package utils;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -9,7 +10,6 @@ public class Util {
 		
 		double x = Double.parseDouble(coord.substring(1, yPos));
 		double y = Double.parseDouble(coord.substring(yPos+1, coord.length()));
-		
 		return new Point2D(x,y);
 	}
 
@@ -33,6 +33,20 @@ public class Util {
 		list.add(new Pair<String, Point2D>(name,coord));
 		
 		return list;
+	}
+	
+	public static List<Point2D> getValueInOcoords(String ocoords){
+		List<Point2D> l = new ArrayList<Point2D>();
+		StringBuilder s = new StringBuilder(ocoords);
+		int sepPos;
+		while((sepPos = s.indexOf("|"))!=-1) {
+			Point2D coord = Util.getValueInCoord(s.substring(0, sepPos));
+			l.add(coord);
+			s.delete(0, sepPos+1);
+		}
+		Point2D coord = Util.getValueInCoord(s.toString());
+		l.add(coord);
+		return l;
 	}
 	
 	public static List<Pair<String, Integer>> getValueInScores(String scores) {

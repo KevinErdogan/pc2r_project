@@ -12,4 +12,13 @@ public class Point2D {
 		this.y = y;
 	}
 
+	public Point2D(double x, double y, double vX, double vY, double angle) {
+		super();
+		this.x = x;
+		this.y = y;
+		this.vX = vX;
+		this.vY = vY;
+		this.angle = angle;
+	}
+
 }

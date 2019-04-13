@@ -12,16 +12,17 @@ class session l m nbPlayer st =
   val mutable playerList = (l : (connexion_kart * player) list)
   val mutable playerPoints = ([] : (player * int) list )
   val map = (m : gameMap)
-  val win_cap = 50
+  val win_cap = 5
   val hasPlayerWin = ref false
-  val objRadius = 10.0
   val nextObj = ref (0.0, 0.0)
+  val objRadius = 35.0
   val isSessionEmpty = ref false
   val mutex = Mutex.create ()
   val mutable obstacles = ( [] : (float * float) list) 
 
   initializer
     (* init new objectif *)
+    self#addObstacles 5; (* ajout de 5 obstacles *) 
     let h = map#getHeight() and w = map#getWidth() in
      let newPos = makeAleaPos h w in
       nextObj := newPos;
@@ -31,8 +32,8 @@ class session l m nbPlayer st =
           self#setPlayerPoints ( (p,0) :: playerPoints);
           p#init h w
       in
-        List.iter initAll playerList;
-      self#addObstacles 5 (* ajout de 5 obstacles *) 
+        List.iter initAll playerList
+      
 
   method run () =
     self#sendStartSession ();
@@ -41,6 +42,15 @@ class session l m nbPlayer st =
       self#tick ();
       print_string("tick\n");flush stdout
     done;
+
+  method runRefrServ serv_refresh_tickrate =
+     while (not( (self#getHasPlayerWin()) ) && not ( (self#getIsSessionEmpty()) )) do
+         Unix.sleepf(serv_refresh_tickrate);
+         self#moveAllPlayers ();
+         self#checkCollision ();
+	 self#checkCollisionWithObj (); 
+         print_string("refresh serv\n");flush stdout
+     done
 
   method private setPlayerList l =
     Mutex.lock mutex;
@@ -60,7 +70,11 @@ class session l m nbPlayer st =
 
   method private getPlayerPoints () =
     Mutex.lock mutex;
-    let pP = playerPoints in (* working ? *)
+    let rec getPoints l = 
+	match l with
+	[] -> []
+	| (c,p) :: t -> (p, p#getScore())::getPoints t	
+    in let pP = getPoints (self#getPlayerList ()) in
     Mutex.unlock mutex;
     pP
 
@@ -106,10 +120,11 @@ class session l m nbPlayer st =
 
   method sendStartSession () =
     let coords = self#getCoords ()
-      and coord = self#getObjCoord () in
+      and coord = self#getObjCoord () 
+      and ocoords = self#getObsCoords () in
         let sender elem =
           let (c,p) = elem in
-            c#startSession coords coord
+            c#startSession coords coord ocoords
         in
         let pL = self#getPlayerList() in
           List.iter sender pL
@@ -128,28 +143,51 @@ class session l m nbPlayer st =
                   nobj pL coord scores;
                   nextObj := (x,y)
 
-(*
-      method receiveNewPos con_hand coord =
-        let indexY = String.index coord 'Y' in
-        let x = String.sub coord 1 (indexY-1)
-          and y = String.sub coord (indexY+1) ((String.length coord)-indexY-1) in
-            let rec search l con_hand x y =
+
+      method moveAllPlayers () = 
+	let rec aux l = 
+		match l with
+		[] -> ()
+		| (c,p) :: t -> p#move (); aux t
+	in aux (self#getPlayerList ())
+
+      method checkCollision () = 
+	self#playersColliding ();
+	self#playersCollidingObstacles ()
+
+      method checkCollisionWithObj () =
+	let (x,y) = !nextObj in
+	let rec collide l = 
+    	 match l with
+      	 [] -> ()
+      	 | (c,p) :: t -> (
+	     if p#isInCollisionWithObs x y then
+		(
+		  p#setScore(p#getScore() +1);
+		  if p#getScore() == win_cap then
+		     self#win ()
+                )		   
+	     else collide t 
+	    )
+    	in collide playerList
+
+      method receiveNewCom con_hand comms =
+        let indexT = String.index comms 'T' in 
+	let angle = String.sub comms 1 (indexT-1)
+	and nbThrust = String.sub comms (indexT+1) ((String.length comms)-indexT-1) in
+	 let rec search l con_hand an th=
               match l with
                 [] -> ()
                | (c, p) :: t -> if c == con_hand then
-                                  p#setNewPos (float_of_string x) (float_of_string y);
-                                  let (w,z) = !nextObj in
-                                    if p#isInCollisionWith w z then
-                                      self#objPassed p
-                                else
-                                  search t con_hand x y
+				 (p#addCommAngle (float_of_string an);
+				  p#addCommsNbThrust (int_of_string th))
+				else
+				  search t con_hand an th
             in
-          search playerList con_hand x y
-*)
-(*
-      method receiveNewCom con_hand comms =
-        ()
-*)
+          search playerList con_hand angle nbThrust
+
+
+
     method listSearch l p =
       let rec search l p =
         match l with
@@ -193,7 +231,7 @@ class session l m nbPlayer st =
       newPlayer#init h w;
       self#setPlayerList ((con_hand, newPlayer) :: (self#getPlayerList()));
       self#setPlayerPoints ((newPlayer, 0) :: (self#getPlayerPoints()));
-      con_hand#startSession (self#getCoords()) (self#getObjCoord())
+      con_hand#startSession (self#getCoords()) (self#getObjCoord()) (self#getObsCoords ())
 
   method playerLeft name =
     let rec removeFromList (head : (connexion_kart * player) list) (l : (connexion_kart * player) list) (name : string) =
@@ -272,8 +310,6 @@ class session l m nbPlayer st =
     in obsPos obstacles ""
 
   method private tick () =
-     self#playersColliding ();
-     self#playersCollidingObstacles ();
      let vcoords = self#getVCoords () in
       let rec send l =
         match l with
@@ -283,46 +319,45 @@ class session l m nbPlayer st =
       let pL = self#getPlayerList() in
         send pL
 
-        method playersColliding () =
-	 let rec collide l = 
-	  match l with
-	    [] -> ()
-	    | (c,p) :: t -> (
-			     let rec auxCollide la = 
-				match la with
-				 [] -> ()
-				 | (cc,pp) :: tt -> let (x,y) = pp#getPos () in 
-						     if p#isInCollisionWith x y then
-							(* a remplacer par choc elastique *)
-							(let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-.vx) (-.vy);
-							let (vx, vy) = pp#getSpeedVec () in pp#setSpeedVec (-.vx) (-.vy)); 
-							auxCollide tt
-			     in auxCollide t (* t, pour eviter de tester plusieurs fois les collisions entre memes vehicules et avec soi meme *)
-			    )
-	  in collide playerList
+   method playersColliding () =
+    let rec collide l = 
+     match l with
+     [] -> ()
+     | (c,p) :: t -> (
+		     let rec auxCollide la = 
+			match la with
+			 [] -> ()
+			 | (cc,pp) :: tt -> let (x,y) = pp#getPos () in 
+					     if p#isInCollisionWith x y then
+						(let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-1.0 *. vx) (-1.0 *. vy);
+						let (vx, vy) = pp#getSpeedVec () in pp#setSpeedVec (-1.0 *. vx) (-1.0 *.vy)); 
+						auxCollide tt
+		     in auxCollide t (* t, pour eviter de tester plusieurs fois les collisions entre memes vehicules et avec soi meme *)
+		    )
+    in collide playerList
 
-	method playersCollidingObstacles () = 
-	 let rec collide l = 
-	  match l with
-	    [] -> ()
-	    | (c,p) :: t -> (
-			     let rec auxCollide la = 
-				match la with
-				 [] -> ()
-				 | (x,y) :: tt -> if p#isInCollisionWith x y then
-						   (* a remplacer par choc elastique *)
-						   let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-.vx) (-.vy);
-						   auxCollide tt
-			     in auxCollide obstacles (* t, pour eviter de tester plusieurs fois les collisions entre memes vehicules et avec soi meme *)
-			    )
-	  in collide playerList
+   method playersCollidingObstacles () = 
+    let rec collide l = 
+     match l with
+      [] -> ()
+      | (c,p) :: t -> (
+	     let rec auxCollide la = 
+		match la with
+		 [] -> ()
+		 | (x,y) :: tt -> if p#isInCollisionWithObs x y then
+				   let (vx, vy) = p#getSpeedVec () in p#setSpeedVec (-1.0 *. vx) (-1.0 *. vy);
+				   auxCollide tt
+	     in auxCollide obstacles 
+	    )
+    in collide playerList
 
-	method addObstacles (n : int) = (*place n obstacles*)
-	 let rec add x = 
-		match x with
-		0 -> ()
-		| _ -> obstacles <- ( (makeAleaPos (map#getWidth()) (map#getHeight())) :: obstacles); add (x-1)
-	 in add n
+
+   method addObstacles (n : int) = (*place n obstacles*)
+    let rec add x = 
+	match x with
+	0 -> ()
+	| _ -> obstacles <- ( (makeAleaPos (map#getWidth()) (map#getHeight())) :: obstacles); add (x-1)
+    in add n
 
 
    method private win () =
@@ -333,6 +368,7 @@ class session l m nbPlayer st =
           | (c,p) :: t -> c#sessionWin scores; winner t
       in
       let pL = self#getPlayerList() in
-        winner pL
+        winner pL;
+	self#setHasPlayerWin true
 
       end;;

@@ -24,16 +24,17 @@ public class MyKeyListener implements KeyListener {
 	         boolean state = frame.getEscapePanel().isVisible();
 	         frame.getEscapePanel().setVisible(!state);
 		}
-		
-		if(e.getKeyCode() == KeyEvent.VK_SPACE) {//thrust
-				System.out.println("THRUST");
-				game.getMyPlayer().thrust();
-		}else if(e.getKeyChar() =='Q' || e.getKeyChar() == 'q') {//clock
-			System.out.println("Q");
-			game.getMyPlayer().anticlock();
-		}else if(e.getKeyChar() =='D' || e.getKeyChar() == 'd') {//anticlock
-			System.out.println("D");
-			game.getMyPlayer().clock();
+		if(game.getMyPlayer() != null) {  
+			if(e.getKeyCode() == KeyEvent.VK_SPACE) {//thrust
+					System.out.println("THRUST");
+					game.getMyPlayer().thrust();
+			}else if(e.getKeyChar() =='Q' || e.getKeyChar() == 'q') {
+				System.out.println("TurnLeft");
+				game.getMyPlayer().anticlock();
+			}else if(e.getKeyChar() =='D' || e.getKeyChar() == 'd') {
+				System.out.println("TurnRight");
+				game.getMyPlayer().clock();
+			}
 		}
 	}
 

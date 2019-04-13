@@ -56,6 +56,7 @@ class game_manager st srt =
           );
           true
       )
+      
 
       method userDeconnected name = (
         (* remove player from list *)
@@ -88,6 +89,7 @@ class game_manager st srt =
               (let session = (new session (self#getPlayerList ()) (new gameMap 800.0 600.0) nbPC serv_tickrate) in
                 self#setCurrentSession session;
                 self#setIsGameRunning true;
+		let _ = Thread.create (self#getCurrentSession())#runRefrServ serv_refresh_tickrate in ();
                 self#setIsTimerOn false;
                 session#run ();
               (* end of session *)
@@ -131,7 +133,7 @@ class game_manager st srt =
       Mutex.unlock mutex;
       pL
 
-    method private getIsGameRunning () =
+    method getIsGameRunning () =
       Mutex.lock mutex;
       let isGR = !isGameRunning in
       Mutex.unlock mutex;
@@ -153,7 +155,7 @@ class game_manager st srt =
       isTimerOn := b;
       Mutex.unlock mutex
 
-    method private getCurrentSession () =
+    method getCurrentSession () =
         Mutex.lock mutex;
         let session = currentSession in
         Mutex.unlock mutex;

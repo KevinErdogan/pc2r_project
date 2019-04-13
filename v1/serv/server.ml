@@ -41,7 +41,7 @@ let main () =
  else
   let port = int_of_string(Sys.argv.(1))
   and n = int_of_string(Sys.argv.(2)) in
-	( let server = (new server_kart port n 2 3) in
+	( let server = (new server_kart port n 2 0.02) in
 		server#start() ) ;;
 
 main();;

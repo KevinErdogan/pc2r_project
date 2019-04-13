@@ -23,7 +23,7 @@ val isConnected = ref false
           try
             let input =  input_line inchan in
             (
-              print_string("Input is : " ^ input ^"\n");flush stdout;
+              (*print_string("Input is : " ^ input ^"\n");flush stdout;*)
               (
                 if Str.string_match connect input 0 then
                   self#connect (String.sub input 8 ((String.length input)-9))
@@ -32,7 +32,7 @@ val isConnected = ref false
                 (*else if Str.string_match newPos input 0 then
                   self#newPos (String.sub input 7 ((String.length input)-9))*)
                   else if Str.string_match newCom input 0 then
-                    self#newCom (String.sub input 7 ((String.length input)-9))
+                    self#newCom (String.sub input 7 ((String.length input)-8))
               );
               input_reader b
             )
@@ -58,10 +58,9 @@ val isConnected = ref false
  method welcome b score nextObj (ocoords:string)=
    let msg =
      if b then
-      "WELCOME/jeu/" ^ score ^ "/" ^ nextObj ^ "/\n"(* ^ ocoords ^"/\n" *)
+      "WELCOME/jeu/" ^ score ^ "/" ^ nextObj ^ "/" ^ ocoords ^"/\n" 
      else
       "WELCOME/attente/\n"
-      (*"WELCOME/attente/"^ score ^ "/" ^ nextObj ^ "/" ^ ocoords ^"/\n"*) (*protocole C ??*)
    in
     self#sendOut msg
 
@@ -73,8 +72,8 @@ val isConnected = ref false
     let msg = "PLAYERLEFT/" ^ name ^ "/\n" in
       self#sendOut msg
 
-  method startSession coords coord =
-    let msg = "SESSION/" ^ coords ^ "/"^ coord ^"/\n" in
+  method startSession coords coord ocoords =
+    let msg = "SESSION/" ^ coords ^ "/"^ coord ^ "/"^ ocoords ^ "/\n" in
       self#sendOut msg
 
   method sessionNewObj coord scores =
@@ -106,9 +105,8 @@ val isConnected = ref false
     if !isConnected && (game_manager#isGameRunning ()) then
       (game_manager#getCurrentSession())#receiveNewPos self coord
 *)
-  method newCom comms =()
-  (*
-        if !isConnected && (game_manager#isGameRunning ()) then
-          (game_manager#getCurrentSession())#receiveNewCom self comms *)
+  method newCom comms = (* ajoute les valeur et refresh les positions des joueurs tous les serv_refresh_tickrate *)
+        if !isConnected && (game_manager#getIsGameRunning ()) then
+          (game_manager#getCurrentSession())#receiveNewCom self comms 
 
 end;;

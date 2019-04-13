@@ -27,12 +27,13 @@ public class NetClientInput extends Thread{
 		String coord = "X"+floats+"Y"+floats;
 		String coords = "(\\|?[a-z]+:"+coord+")+";
 		String scores = "(\\|?[a-z]+:[0-9]+)+";
-		String vcoords = "(\\|?"+coords+"VX"+floats+"VY"+floats+"T"+floats+")";
-		welcome = Pattern.compile("WELCOME\\/(attente|jeu\\/"+scores+"\\/"+coord+")\\/"); 
+		String vcoords = "(\\|?"+coords+"VX"+floats+"VY"+floats+"T"+floats+")+";
+		String ocoords = "(\\|?"+coord+")+";
+		welcome = Pattern.compile("WELCOME\\/(attente|jeu\\/"+scores+"\\/"+coord+"\\/"+ocoords+")\\/"); 
 		denied = Pattern.compile("DENIED\\/");
 		playerLeft = Pattern.compile("PLAYERLEFT\\/[a-z]+\\/");
 		newPlayer = Pattern.compile("NEWPLAYER\\/[a-z]+\\/");
-		session = Pattern.compile("SESSION\\/"+coords+"\\/"+coord+"\\/");
+		session = Pattern.compile("SESSION\\/"+coords+"\\/"+coord+"\\/"+ocoords+"\\/");
 		winner = Pattern.compile("WINNER\\/"+scores+"\\/");
 		tick = Pattern.compile("TICK\\/"+vcoords+"\\/");
 		newObj = Pattern.compile("NEWOBJ\\/"+coord+"\\/"+scores+"\\/");
@@ -62,6 +63,7 @@ public class NetClientInput extends Thread{
 						String phase = null;
 						String score = null;
 						String cord = null;
+						String ocoords = null;
 						for(int i=8; i < line.length(); i++) {
 							if(line.charAt(i)=='/') {
 								if(phase==null) {
@@ -72,8 +74,10 @@ public class NetClientInput extends Thread{
 									}
 								}else if(score==null) {
 									score = s.toString();
-								}else {
+								}else if (cord==null){
 									cord = s.toString();
+								}else {
+									ocoords = s.toString();
 								}
 								s.delete(0, s.length());
 								continue;
@@ -81,7 +85,7 @@ public class NetClientInput extends Thread{
 							s.append(line.charAt(i));
 						}
 						if(!isWaiting)
-							handler.welcome(phase, score, cord);
+							handler.welcome(phase, score, cord, ocoords);
 						else
 							handler.welcomeWait();
 					}else if(denied.matcher(line).matches()) {
@@ -96,8 +100,11 @@ public class NetClientInput extends Thread{
 						int i= 8;
 						while(line.charAt(i)!='/') i++;
 						String cords = line.substring(8,i);
-						String cord = line.substring(i+2, line.length()-2); 
-						handler.session(cords, cord);
+						int j = i+1;
+						while(line.charAt(j)!='/') j++;
+						String cord = line.substring(i+1,j);
+						String ocoords = line.substring(j+1, line.length()-2); 
+						handler.session(cords, cord, ocoords);
 					}else if(winner.matcher(line).matches()) {
 						String scors = line.substring(7, line.length()-2);
 						handler.winner(scors);

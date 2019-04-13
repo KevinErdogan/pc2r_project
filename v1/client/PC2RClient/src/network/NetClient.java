@@ -5,7 +5,7 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 
-import model.Player;
+
 
 public class NetClient {
 	//public static final int TIMEOUT = 10;
@@ -17,7 +17,6 @@ public class NetClient {
 	private NetClientOutput cho;
 	
 	private String name = null;
-	private Player myClientPlayer = null;
 	private LinkedList<NetworkObserver> observers = new LinkedList<NetworkObserver>();
 	
 	public NetClient(String host, int port) {
@@ -43,6 +42,8 @@ public class NetClient {
 		if (sock != null)
 			sock.close();
 	} 
+	
+
 	
 	// Observers Pattern
 	
@@ -73,8 +74,8 @@ public class NetClient {
 		notifyObservers(new NetworkEvent(NetworkEvent.NetType.WELCOMEWAIT));
 	}
 	
-	public void welcome(String phase, String scores, String coord) {
-		notifyObservers(new NetworkEvent(NetworkEvent.NetType.WELCOMEGAME, scores, coord));
+	public void welcome(String phase, String scores, String coord, String ocoords) {
+		notifyObservers(new NetworkEvent(NetworkEvent.NetType.WELCOMEGAME, scores, coord, ocoords));
 	}
 
 	public void denied()  {
@@ -89,8 +90,8 @@ public class NetClient {
 		notifyObservers(new NetworkEvent(NetworkEvent.NetType.NEWPLAYER, name));
 	}
 
-	public void session(String coords, String coord) {
-		notifyObservers(new NetworkEvent(NetworkEvent.NetType.NEWSESSION, coords, coord));
+	public void session(String coords, String coord, String ocoords) {
+		notifyObservers(new NetworkEvent(NetworkEvent.NetType.NEWSESSION, coords, coord, ocoords));
 	}
 
 	public void winner(String scores) {
@@ -108,15 +109,8 @@ public class NetClient {
 	// to Send Messages
 	
 	public void newCom(String cmds) {
+		//System.out.println("SENDING : "+cmds);
 		cho.newCom(cmds);
-	}
-
-	public Player getMyClientPlayer() {
-		return myClientPlayer;
-	}
-
-	public void setMyClientPlayer(Player myClientPlayer) {System.out.println("init net client player");
-		this.myClientPlayer = myClientPlayer;
 	}
 
 	public String getName() {

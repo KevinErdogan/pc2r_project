@@ -20,7 +20,7 @@ public class GameScreenThread implements Runnable {
 				e.printStackTrace();
 			}
 			if(gamePanel.isInGame())
-				gamePanel.getGame().moveAllPlayers();
+				gamePanel.getGame().moveAllPlayersAndCollide();
 			gamePanel.repaint();
 			
 		}

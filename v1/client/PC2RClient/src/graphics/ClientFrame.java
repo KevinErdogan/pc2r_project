@@ -1,11 +1,13 @@
 package graphics;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import javax.swing.JOptionPane;
 
 import model.Game;
+import model.Objectif;
 import network.NetClient;
 import network.NetworkEvent;
 import network.NetworkObserver;
@@ -21,7 +23,8 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 	private static final long serialVersionUID = -1931892390969434886L;
 	
 	boolean isInGame=false;
-
+	
+	
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -421,6 +424,8 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     private MyKeyListener myKeyListener;
     private NetClient client=null;
     private Game game;
+    public static final long SERV_TICKRATE = 1000/2;//en millisec
+    private ServTickThread newComThread;
     
     public ClientFrame() {
         initComponents(); 
@@ -457,6 +462,8 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     public void denied() {
     	JOptionPane.showMessageDialog(this, "Username incorrect or already in use.", "Username", JOptionPane.ERROR_MESSAGE);
     }
+    
+    
 
 	@Override
 	public void notify(List<NetworkEvent> events) {
@@ -474,7 +481,8 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 					List<Object> params = e.getParameters();
 					Point2D coord = Util.getValueInCoord((String) params.get(1));
 					List<Pair<String, Integer>> scores = Util.getValueInScores((String) params.get(0));
-					game = new Game(null, coord, client.getName());
+					List<Point2D> ocoords = Util.getValueInOcoords((String) params.get(2));
+					game = new Game(null, coord, ocoords, client.getName());
 					game.setScores(scores);
 					myKeyListener.init(game);
 				}
@@ -492,24 +500,36 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
 				
 			case TICK:
 				{
+					
 					List<Object> params = e.getParameters();
 					List<Pair<String, Point2D>> vcoords = Util.getValueInVcoords((String) params.get(0));
 					game.update(vcoords);
 					
 				}	
 				break;
+			case NEWOBJ:
+				{	
+					List<Object> params = e.getParameters();
+					List<Pair<String, Integer>> scores = Util.getValueInScores((String) params.get(1));
+					Point2D coord = Util.getValueInCoord((String) params.get(0));
+					game.setObjectif(new Objectif(coord));
+					game.updateScores(scores);
+				}
+				break;
 			case NEWSESSION:
 				List<Object> params = e.getParameters();
 				List<Pair<String, Point2D>> coords = Util.getValueInCoords((String) params.get(0));
 				Point2D coord = Util.getValueInCoord((String) params.get(1));
-				
-				game = new Game(coords, coord, client.getName());
+				List<Point2D> ocoords = Util.getValueInOcoords((String) params.get(2));
+				game = new Game(coords, coord, ocoords, client.getName());
 				myKeyListener.init(game);
 				gamePanel.start(game);
+				startNewComThread();
 				break;
 			case WINNER:
-				
 				gamePanel.stop();
+				newComThread.stop();
+				System.out.println("End of Session");
 				break;
 			default:
 				break;
@@ -536,10 +556,25 @@ public class ClientFrame extends javax.swing.JFrame implements NetworkObserver {
     }     
     
     
+    public void sendNewCom() {
+    	Pair<Double,Integer> comms = game.getMyPlayer().getCommandsAndReset();
+		StringBuilder cs = new StringBuilder();
+		cs.append('A');
+		cs.append((comms.getLeft()));
+		cs.append('T');
+		cs.append(comms.getRight());
+		client.newCom(cs.toString());
+    }
+    
     public Game getGame() {
     	return game;
     }
     
+    public void startNewComThread() {
+		newComThread = new ServTickThread(this, SERV_TICKRATE);
+		new Thread(newComThread).start();
+	}
+
     
     /******************************************************************************************/
     private void configButtonMouseClicked(java.awt.event.MouseEvent evt) {                                          

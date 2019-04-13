@@ -5,7 +5,7 @@ import utils.Point2D;
 public class Obstacle {
 
 	private Point2D pos;
-	private final double radius = 10.0;
+	private final double radius = 25.0;
 	
 	public Obstacle(double x, double y) {
 		this.pos = new Point2D(x, y);

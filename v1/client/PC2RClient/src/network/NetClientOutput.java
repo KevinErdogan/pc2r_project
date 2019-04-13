@@ -23,6 +23,6 @@ public class NetClientOutput {
 	
 	public void newCom(String cmds) {
 		os.println("NEWCOM/"+cmds+"/");
-		System.out.println("sending cmds");
+		//System.out.println("sending cmds");
 	}
 }

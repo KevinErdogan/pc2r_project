@@ -4,6 +4,8 @@ import utils.Point2D;
 
 public class Objectif {
 	private Point2D pos;
+	private double radius = 35.0;
+	private boolean pickedUp = false;
 	
 	public Objectif(Point2D objPt) {
 		pos=objPt;
@@ -16,5 +18,19 @@ public class Objectif {
 	public Point2D getPos() {
 		return pos;
 	}
+
+	public double getRadius() {
+		return radius;
+	}
+
+	public boolean isPickedUp() {
+		return pickedUp;
+	}
+
+	public void setPickedUp(boolean pickedUp) {
+		this.pickedUp = pickedUp;
+	}
+	
+
 
 }
