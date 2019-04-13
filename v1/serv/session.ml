@@ -40,7 +40,7 @@ class session l m nbPlayer st =
     while ( not( (self#getHasPlayerWin()) ) && not ( (self#getIsSessionEmpty()) ) ) do
       Unix.sleep(serv_tickrate);
       self#tick ();
-      print_string("tick\n");flush stdout
+      (*print_string("tick\n");flush stdout*)
     done;
 
   method runRefrServ serv_refresh_tickrate =
@@ -49,7 +49,7 @@ class session l m nbPlayer st =
          self#moveAllPlayers ();
          self#checkCollision ();
 	 self#checkCollisionWithObj (); 
-         print_string("refresh serv\n");flush stdout
+        (* print_string("refresh serv\n");flush stdout*)
      done
 
   method private setPlayerList l =
